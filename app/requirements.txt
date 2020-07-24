@@ -1,0 +1,8 @@
+Flask==1.0.2
+Flask-PyMongo==2.2.0
+requests==2.20.1
+watchdog
+pymodm
+#For the steps
+openpyxl
+# pandas # Pandas should be included with the base image now

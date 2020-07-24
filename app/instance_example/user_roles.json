@@ -1,0 +1,28 @@
+{
+    "admin": [
+        "admin_all"
+    ],
+    "lab_manager": [
+        "samples_submit", 
+        "samples_assign",
+        "samples_see_own",
+        "samples_see_all",
+        "samples_edit_own",
+        "samples_edit_all",
+        "workflows_see_all",
+        "workflows_progress",
+        "workflows_see_results",
+        "admin_species"
+    ],
+    "technician": [
+        "samples_see_all",
+        "workflows_see_all",
+        "workflows_progress",
+        "workflows_see_results"
+    ],
+    "sample_supplier": [
+        "samples_submit",
+        "samples_see_own",
+        "samples_edit_own"
+    ]
+}

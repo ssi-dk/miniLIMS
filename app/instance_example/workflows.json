@@ -1,0 +1,10 @@
+[
+    {
+        "name": "workflow1",
+        "display_name": "workflow 1",
+        "steps": [
+            "test_step1A"
+        ],
+        "valid_plate_types": ["96plate"]
+    }
+]

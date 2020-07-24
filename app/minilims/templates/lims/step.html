@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% block style %}
+<style>
+  .table td {
+    padding: .25rem;
+    font-size: 0.85rem;
+  }
+  .pre-wrap {
+    white-space: pre-wrap;
+  }
+</style>
+{% endblock %}
+{% block header %}
+<h1>{% block title %}Starting step{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-md-8">
+    {% if data %}
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Samples</h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+              <div class="col-sm-12">
+                <table class="table table-bordered dataTable compact" id="samples-table" width="100%" cellspacing="0"
+                  role="grid" style="width: 100%;">
+                  <!-- <thead>
+                    <tr role="row">
+                      <th rowspan="1" colspan="1" style="width: 64px;"></th>
+                      <th rowspan="1" colspan="1" style="width: 64px;">Barcode</th>
+                      <th rowspan="1" colspan="1" style="width: 64px;">Species</th>
+                      <th rowspan="1" colspan="1" style="width: 64px;">Batch</th>
+                    </tr>
+                  </thead>
+                  <tfoot>
+                    <tr role="row">
+                      <th rowspan="1" colspan="1" style="width: 64px;"></th>
+                      <th rowspan="1" colspan="1" style="width: 64px;">Barcode</th>
+                      <th rowspan="1" colspan="1" style="width: 64px;">Species</th>
+                      <th rowspan="1" colspan="1" style="width: 64px;">Batch</th>
+                    </tr>
+                  </tfoot>
+                  <tbody>
+                  </tbody> -->
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">{{data.step.display_name}} ({{ data.step.version }})</h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div id="step-submit-card" class="col-sm-12">
+            <div>
+              <span class="display-4 selected-count">0</span> samples selected.
+            </div>
+            {{ data.step.description }}
+            <form id="start-step">
+              <div class="form-group">
+                <label for="batchName">Select batch</label>
+                <select id="batchName" name="batch_name" class="custom-select">
+                  {% for batch_name in data.step_batches %}
+                  <option>{{batch_name}}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <button class="btn btn-primary" type="submit">Start step</button>
+            </form>
+            <pre class="pre-wrap text-danger" id="start-step-msg">
+            </pre>
+            {% for started in data.started_steps %}
+            <div>
+              There is an already started step with {{ started.samples|length }} samples. <a href="{{ url_for('lims.step_started', stepinstanceid=started.id) }}">Continue it</a> or 
+              <a href="#" class="cancel-step-link" data-stepiid="{{started.id}}"">Cancel it</a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% if data.alternative_steps %}
+    <h3>Alternative steps</h3>
+    {% for alternative_step in data.alternative_steps %}
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">{{alternative_step.display_name}} ({{ alternative_step.version }})</h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-sm-12">
+            <div>
+              <span class="display-4 selected-count">0</span> samples selected.
+            </div>
+            {{ alternative_step.description }}
+            <form id="start-step">
+              <button class="btn btn-primary" type="submit">Start step</button>
+            </form>
+            <pre class="pre-wrap text-danger" id="start-step-msg">
+            </pre>
+            {% for started in alternative_step.started_steps %}
+            <div>
+              There is an already started step with {{ started.samples|length }} samples. <a
+                href="{{ url_for('lims.step_started', stepinstanceid=started.id) }}">Continue it</a> or
+              <a href="#" class="cancel-step-link" data-stepiid="{{started.id}}"">Cancel it</a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript"
+  src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.20/b-1.6.1/b-html5-1.6.1/sc-2.0.1/sl-1.3.1/datatables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.js"></script>
+<script>
+  $(document).ready(function () {
+      var samples = JSON.parse('{{ data.available_samples|tojson }}');
+      var table = $('#samples-table').DataTable({
+        paging: false,
+        columns: [
+          {
+            "className": 'select-checkbox',
+            "orderable": false,
+            "data": null,
+            "defaultContent": '',
+            "width": "12px"
+          },
+          {
+            "title": "Barcode",
+            "data": "barcode"
+          },
+          {
+            "title": "Species",
+            "data": "species"
+          },
+          {
+            "title": "Batch",
+            "data": "batch"
+          },
+          {
+            "title": "Position",
+            "data": "position",
+            "render": function(data, type, row) {
+              return row.positions[$("#batchName").val()]
+            }
+          },
+        ],
+        select: {
+          style: 'os',
+          selector: 'td:first-child'
+        },
+        order: [[4, 'asc']]
+      });
+      function updateTableSample() {
+        var batch_name = $("#batchName").val();
+        var tabledata = samples.filter(function (e) {
+          return e.batch_json.indexOf(batch_name) !== -1
+        })
+        table.clear();
+        table.rows.add(tabledata).draw();
+        table.rows().select();
+      }
+
+      updateTableSample();
+      
+      $("#batchName").on("change", updateTableSample);
+      
+      $("#start-step").submit(function(e){
+        e.preventDefault();
+        new Spinner().spin(document.getElementById("step-submit-card"));
+        // Get selected samples
+        var rows = table.rows({ selected: true }).data();
+        sample_barcodes = [];
+        for (var i = 0; i<rows.length; i++) {
+          sample_barcodes.push(rows[i]["barcode"]);
+        };
+        // Get selected batch
+        var workflow_batch = $("#batchName").val();
+        
+        var formData = JSON.stringify({
+          "sample_barcodes": sample_barcodes,
+          "workflow_batch": workflow_batch
+        });
+        var step_name = "{{ data.step.name|safe }}";
+        $.ajax({
+          type: "POST",
+          url: "/steps/"+step_name+"/start",
+          data: formData,
+          success: function(data, error){
+            if (data.status == "OK") {
+              window.location = "/stepinstance/"+ data.data.step_instance_id 
+            } else if (data.status ==  "Fail") {
+              var errorstring = "";
+              for (key in data.errors) {
+                errorstring = errorstring + key + ": " + data.errors[key];
+              }
+              $("#start-step-msg").text(errorstring);
+            }
+          },
+          error: function(error){
+            console.log(error)
+          },
+          dataType: "json",
+          contentType : "application/json"
+        });
+      });
+      $(".cancel-step-link").click(function(e) {
+        e.preventDefault();
+        var step_instance_id = $(e.target).data("stepiid");
+        $.ajax({
+          type: "POST",
+          url: "/stepinstance/" + step_instance_id + "/cancel",
+          success: function (data, error) {
+            if (data.status == "Cancelled") {
+              $("#start-step-msg").html("Running step cancelled");
+              window.location = "/steps/" + data.data.step_name;
+            } 
+          },
+          error: function (error) {
+            console.log(error)
+          },
+          dataType: "json",
+          contentType: "application/json"
+        });
+      });
+      function updateCount() {
+        var count = table.rows({ selected: true }).count();
+        $(".selected-count").text(count);
+      }
+      updateCount();
+      table.on("select deselect", updateCount);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,210 @@
+
+{% extends 'base.html' %}
+{% block style %}
+<style>
+  #data-table span {
+    display: block;
+  }
+  .table td {
+    padding: .25rem;
+    font-size: 0.85rem;
+  }
+</style>
+{% endblock %}
+{% block header %}
+{% block title %}Assign to workflow{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-12">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Plate-view</h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+              <div class="col-sm-12">
+                <div>
+                  <table id="plateViewTable" class="table table-bordered compact">
+
+                  </table>
+                </div>
+                <form id="assignForm">
+                  <div class="form-group">
+                    <label for="exampleInputEmail1">Workflow name</label>
+                    <input type="text" class="form-control" id="workflowInput" disabled value="{{ data.workflow_name }}">
+                  </div>
+                  <div class="form-group">
+                    <label for="exampleInputEmail1">Batch name</label>
+                    <input type="text" class="form-control" id="batchNameInput" disabled value="{{ data.batch_name }}">
+                  </div>
+                  {% if data.possible_starting_steps %}
+                  <div class="form-group">
+                    <label for="stepNameInput">Send to step</label>
+                    <select type="text" class="form-control" id="stepNameInput">
+                      {% for step in data.possible_starting_steps %}
+                      {% if step == data.suggested_step %}
+                        <option value="{{ step|e }}" selected>{{ step }}</option>
+                      {% else %}
+                        <option value="{{ step|e }}">{{ step }}</option>
+                      {% endif %}
+                      {% endfor %}
+                    </select>
+                  </div>
+                  {% endif %}
+                  <button id="assign_button" class="btn btn-primary">Assign to workflow</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <div class="col-md-12">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Samples list</h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+              <div class="col-sm-12">
+                  <table class="table table-bordered dataTable compact" id="samples-table" width="100%" cellspacing="0" role="grid"
+                    style="width: 100%;">
+                    <thead>
+                      <tr role="row">
+                        {% for column in data.columns %}
+                        <th tabindex="0" rowspan="1" colspan="1" style="width: 64px;">
+                          {{column.name}}
+                        </th>
+                        {% endfor %}
+                      </tr>
+                    </thead>
+                    <tfoot>
+                      <tr role="row">
+                        {% for column in data.columns %}
+                        <th rowspan="1" colspan="1" style="width: 64px;">
+                          {{column.name}}
+                        </th>
+                        {% endfor %}
+                      </tr>
+                    </tfoot>
+                    <tbody>
+                      {% for sample in data.samples %}
+                      <tr role="row" class="odd">
+                        <!--Even-->
+                        {% for column in data.columns %}
+                        <td>{{sample[column.id]}}</td>
+                        {% endfor %}
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+  <script type="text/javascript"
+    src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.20/b-1.6.1/b-html5-1.6.1/rr-1.2.7/sc-2.0.1/sl-1.3.1/datatables.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      var plate_type = JSON.parse('{{ data.plate_view.plate_type|tojson }}');
+      var table = $('#samples-table').DataTable({
+        paging: true,
+        pageLength: 100,
+        columnDefs: [
+          { orderable: false, targets: '_all' }
+        ],
+        order: [[0, 'asc']],
+        rowReorder: true,
+        deferRender: true,
+        scrollY: 700,
+        scrollCollapse: true,
+        scroller: true
+      });
+
+      $("#assignForm").submit(function(e) {
+        e.preventDefault();
+
+        var sample_barcodes = [];
+        table.rows({ order: 'current' }).every(function (rowIndex, tableLoop, rowLoop) {
+          sample_barcodes.push(this.data()[1]);
+        });
+
+        var data = {
+          "workflow": $("#workflowInput").val(),
+          "sample_barcodes": sample_barcodes,
+          "batch_name": $("#batchNameInput").val(),
+          "plate_type": plate_type,
+          "step_name": $("#stepNameInput").val(),
+          "reorganizing": JSON.parse('{{ data.reorganizing|tojson }}')
+        };
+        $.ajax({
+          type: "POST",
+          url: "{{ url_for('samples.assign_samples_API') }}",
+          data: JSON.stringify(data),
+          success: function (data, error) {
+            if (data.status == "OK") {
+              window.location = "{{ url_for('lims.index') }}"
+            }
+          },
+          error: function (error) {
+            console.log(error)
+          },
+          dataType: "json",
+          contentType: "application/json"
+        });
+      });
+      function updatePlateView() {
+        table.draw(false); // Bug https://datatables.net/forums/discussion/54045
+        var tableData = table.rows().data()
+        var plate_view = JSON.parse('{{ data.plate_view|tojson }}');
+        if (plate_type == "96plate") {
+          // Transposing as 96 plate is filled by rows:
+          var transposed = plate_view.plate[0].map((_, colIndex) => plate_view.plate.map(row => row[colIndex]));
+
+          table.rows({order: 'current'}).every(function(rowIndex, tableLoop, rowLoop) {
+            // Find the first index and replace its value
+            for (let rowIndex = 0; rowIndex < transposed.length; rowIndex++) {
+              var index = transposed[rowIndex].findIndex(x => x === null);
+              if (index !== -1) {
+                transposed[rowIndex][index] = "<strong>" + this.data()[1] + "</strong>"; // Barcode;
+                break;
+              }
+            }
+          });
+          
+          // Transpose back
+          var transposed = transposed[0].map((_, colIndex) => transposed.map(row => row[colIndex]));
+
+          var tableHTML = "<tr><th>";
+          tableHTML = tableHTML + ["Row","1","2","3","4","5","6","7","8","9","10","11","12"].join("</th><th>");
+          tableHTML = tableHTML + "</th><tr>";
+          var rowIndex = 0;
+          var rowsNames = ["A", "B", "C", "D", "E", "F", "G", "H"];
+          transposed.forEach(function(row) {
+            tableHTML = tableHTML + "<tr><td><strong>" + rowsNames[rowIndex] + "</strong></td><td>" + row.join('</td><td>') + "</td></tr>";
+            rowIndex += 1;
+          });
+          
+        }
+        $("#plateViewTable").html(tableHTML);
+      }
+      updatePlateView();
+      table.on('row-reordered', updatePlateView);
+    });
+  </script>
+{% endblock %}

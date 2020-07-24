@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block style %}
+<style>
+  .table td {
+    padding: .25rem;
+    font-size: 0.85rem;
+  }
+  .pre-wrap {
+    white-space: pre-wrap;
+  }
+</style>
+{% endblock %}
+{% block header %}
+<h1>{% block title %}Step details - {{ data.step.display_name }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-md-4">
+    {% if data %}
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h5 class="m-0 font-weight-bold text-primary">{{ data.step.display_name }} ({{ data.step.version }})</h5>
+      </div>
+      <div class="card-body">
+        <p>{{ data.step.description }}</p>
+        <strong>Workflows: </strong> {{ data.step.workflows }}<br />
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Start step</h6>
+      </div>
+      <div class="card-body">
+        <span class="display-4 selected-count">{{ data.available.count }}</span> samples can start this step.
+        <a class="btn btn-primary d-block" type="submit" href="{{ url_for('lims.step_overview', step_name=data.step.name) }}">Go to step start</a>
+      </div>
+    </div>
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Step instances</h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+              <div class="col-sm-12">
+                <table class="table table-bordered dataTable compact" id="step_instances-table" width="100%" cellspacing="0"
+                  role="grid" style="width: 100%;">
+                  <thead>
+                    <tr role="row">
+                      <th rowspan="1" colspan="1" style="width: 64px;">Batch</th>
+                      <th rowspan="1" colspan="1" style="width: 64px;"># samples</th>
+                      <th rowspan="1" colspan="1" style="width: 64px;">Date Finished</th>
+                      <th rowspan="1" colspan="1" style="width: 64px;">Link</th>
+                    </tr>
+                  </thead>
+                  <tfoot>
+                    <tr role="row">
+                      <th rowspan="1" colspan="1" style="width: 64px;">Batch</th>
+                      <th rowspan="1" colspan="1" style="width: 64px;"># samples</th>
+                      <th rowspan="1" colspan="1" style="width: 64px;">Date Finished</th>
+                      <th rowspan="1" colspan="1" style="width: 64px;">Link</th>
+                    </tr>
+                  </tfoot>
+                  <tbody>
+                    {% for s_i in data.step_instances %}
+                    <tr role="row" class="odd">
+                      <td>{{ s_i.batch }}</td>
+                      <td>{{ s_i.num_samples }}</td>
+                      <td>{{ s_i.finish_date }}</td>
+                      <td><a href="{{ url_for('lims.step_finished', stepinstanceid=s_i.id) }}">Link</a></td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript"
+  src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.20/b-1.6.1/b-html5-1.6.1/sc-2.0.1/sl-1.3.1/datatables.min.js"></script>
+<script>
+  $(document).ready(function () {
+      var table = $('#samples-table').DataTable({
+        paging: false,
+        columnDefs: [{
+          orderable: false,
+        }],
+        order: [[2, 'asc']]
+      });
+      
+    });
+</script>
+{% endblock %}

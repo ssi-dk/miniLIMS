@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% block style %}
+<!-- <style>
+    .table td {
+        padding: .25rem;
+        font-size: 0.85rem;
+    }
+
+    .pre-wrap {
+        white-space: pre-wrap;
+    }
+</style> -->
+{% endblock %}
+{% block header %}
+<h1>{% block title %}Step finished{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-6">
+        {% if data %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Step results summary</h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <h5>{{ data.finished_step.display_name }}</h5>
+                                <strong>Date started:</strong> {{data.finished_step.start_date}}<br />
+                                <strong>Date finished:</strong> {{data.finished_step.finish_date}}<br />
+                                <strong>Values</strong><br />
+                                {% for io_value in data.finished_step.values_all %}
+                                {{io_value.name}}: <br />
+                                {% if io_value.type == "file" %}
+                                <a href="{{ io_value.value }}" download>Download file</a></br>
+                                {% else %}
+                                <pre>{{io_value.value}}</pre>
+                                {% endif %}
+                                {% endfor %}
+                                <table id="step-samples">
+                                    <thead><tr><th>Barcode</th>
+                                {% for field in data.finished_step.fields_samples %}
+                                    <th>
+                                    {{ field[0]|e }}
+                                    </th>
+                                {% endfor %}
+                                </tr></thead>
+                                <tbody>
+                                    {% for sample in data.finished_step.values_samples %}
+                                        <tr>
+                                            <td>{{ sample|e }}</td>
+                                            {% for field in data.finished_step.fields_samples %}
+                                                    <td>{{ data.finished_step.values_samples[sample][field[0]] }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                                </table>
+
+                                <button id="button-delete-step" class="btn btn-danger">Delete step</button>
+                                <pre id="error-pre"></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    <div class="col-md-4">
+        {% if data.suggested_step %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Suggested step</h6>
+            </div>
+            <div class="card-body">
+                {{ data.suggested_step.display_name }}
+                <a class="btn btn-primary" href="{{ url_for('lims.step_overview', step_name=data.suggested_step.name) }}">Go</a>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+    </div>
+    {% if data.alternative_steps %}
+    <h3>Alternative steps</h3>
+    {% for alternative_step in data.alternative_steps %}
+    <div class=" card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                {{alternative_step.display_name}} ({{ alternative_step.version }})</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div>
+                                <span class="display-4 selected-count">0</span> samples selected.
+                            </div>
+                            {{ alternative_step.description }}
+                            <form id="start-step">
+                                <button class="btn btn-primary" type="submit">Start
+                                    step</button>
+                            </form>
+                            <pre class="pre-wrap text-danger" id="start-step-msg">
+                            </pre>
+                            {% for started in alternative_step.started_steps %}
+                            <div>
+                                There is an already started step with {{ started.samples|length }} samples. 
+                                <a href="{{ url_for('lims.step_started', stepinstanceid=started.id) }}">Continue it</a> or
+                                <a href="#" class="cancel-step-link" data-stepiid="{{started.id}}"">Cancel it</a>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+</div>
+{% if data.reassign %}
+<div class="modal fade" id="assignModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Assign samples to workflow</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Some samples failed the QC in this step. They have been unasigned from this workflow and will be sent to the following step in the batch you specify here.</p>
+                <p>Samples that will be sent: {{ data.reassign.samples|join(', ') }}.</p>
+                
+                <form id="assignForm" action="{{ url_for('samples.assign_samples_API') }}" method="POST">
+                    <div class="form-group">
+                        <label for="workflowInput">Workflow name</label>
+                        <select id="workflowInput" name="workflow" class="custom-select" deactivated>
+                            <option value="{{ data.reassign.workflow.name|e }}" selected>{{ data.reassign.workflow.display_name }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="batchNameInput">Batch name</label>
+                        <input type="text" class="form-control" id="batchNameInput" name="batch_name">
+                    </div>
+                    <div class="form-group">
+                        <label for="PlateTypeInput">Plate type</label>
+                        <select id="PlateTypeInput" name="plate_type" class="custom-select">
+                            {% for plate in data.reassign.workflow.plate_types %}
+                            <option>{{ plate|e }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <input type="hidden" class="form-control" id="suggested_step" name="suggested_step" value='{{data.reassign.suggested_step}}'>
+                    {% for sample in data.reassign.samples %}
+                    <input name="sample_barcodes[]" type="hidden" value="{{ sample|e }}">
+                    {% endfor %}
+                    
+                </form>
+                <div id="modalError" class="alert alert-danger d-none">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button id="assignButton" type="button" class="btn btn-primary">Assign to workflow</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script type=" text/javascript" src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.20/b-1.6.1/b-html5-1.6.1/sc-2.0.1/sl-1.3.1/datatables.min.js">
+</script>
+<script>
+    $(document).ready(function () {
+        // Handle submission of sample assignment to workflows.
+        $("#assignButton").click(function () { $("#assignForm").trigger("submit"); })
+        var reassign = JSON.parse('{{ data.reassign|tojson }}');
+        if (reassign.samples) {
+            $("#assignModalSampleNames").text(reassign.samples.join(", "));
+            $('#assignModal').modal();
+        }
+
+        var table = $('#step-samples').DataTable({
+            paging: false,
+            columnDefs: [{
+                orderable: false,
+            }],
+        });
+        $("#button-delete-step").click(function(e){
+            var step_instance_id = "{{ data.finished_step.id }}";
+            var confirmed = confirm("Are you sure you want to delete this step instance? Data will be lost.")
+            if (!confirmed) {
+                return
+            }
+            $.ajax({
+                type: "POST",
+                url: "/stepinstance/" + step_instance_id + "/delete",
+                success: function (data, error) {
+                    if (data.status == "Deleted") {
+                        window.location = "/";
+                    } else {
+                        var errorpre = "";
+                        for (index in data.errors) {
+                            errorpre = errorpre + data.errors[index] + "\n"
+                        }
+                        $("#error-pre").text(errorpre);
+                    }
+                },
+                error: function (error) {
+                    $("#error-pre").text(error);
+                },
+                dataType: "json",
+                contentType: "application/json"
+            });
+        });
+        $(".cancel-step-link").click(function (e) {
+            e.preventDefault();
+            var step_instance_id = $(e.target).data("stepiid");
+            $.ajax({
+                type: "POST",
+                url: "/stepinstance/" + step_instance_id + "/cancel",
+                success: function (data, error) {
+                    if (data.status == "Cancelled") {
+                        $("#start-step-msg").html("Running step cancelled");
+                        window.location = "/steps/" + data.data.step_name;
+                    }
+                },
+                error: function (error) {
+                    console.log(error)
+                },
+                dataType: "json",
+                contentType: "application/json"
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,10 @@
+
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Unauthorized{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <p>Your user lacks priviledges to perform this action. Please contact an admin if you have any questions.</p>
+{% endblock %}

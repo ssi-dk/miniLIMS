@@ -1,0 +1,24 @@
+version: '3'
+services:
+  flask:
+    build:
+      context: app
+    env_file:
+      - .app.dev.env
+    environment:
+      FLASK_APP: minilims
+      FLASK_ENV: development
+      TEMPLATES_AUTO_RELOAD: 'true'
+      MONGODB_DATABASE: flaskdb
+    volumes:
+      - './app:/var/www/'
+    ports:
+      - '5000:5000'
+    working_dir: /var/www
+    command: flask run --host=0.0.0.0 --port=5000
+  webserver:
+    command: /bin/true
+    restart: "no"
+  mongodb:
+    ports:
+      - '27017:27017'

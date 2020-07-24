@@ -1,0 +1,536 @@
+{% extends 'base.html' %}
+{% block nav_browse_samples %}active{% endblock %}
+{% block style %}
+<style>
+    .table td {
+        padding: .25rem;
+        font-size: 0.85rem;
+    }
+    #modalErrorMsg {
+        white-space: pre-wrap;
+    }
+    .modalfront {
+        z-index: 1150;
+    }
+</style>
+{% endblock %}
+
+{% block header %}
+{% block title %}Browse Samples{% endblock %}
+{% endblock %}
+
+{% block content %}
+{% if data %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Samples list</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+                <div class="row justify-content-end">
+                    <div class="col-sm-3">
+                        <div><strong>Sample Count:</strong> <span id="selected-sample-count"></span></div>
+                        <div><strong>Total Genome size:</strong> <span id="selected-genome-sum"></span></div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <table class="table table-bordered dataTable compact" id="samples-table" width="100%" cellspacing="0"
+                            role="grid" style="width: 100%;">
+                            <thead><tr>
+                                {% for column in data.columns %}
+                                    <th>{{ column.title }}</th>
+                                {% endfor %}
+                            </tr></thead>
+                            <tbody></tbody>
+                            <tfoot><tr>
+                                {% for column in data.columns %}
+                                <th>{{ column.title }}</th>
+                                {% endfor %}
+                            </tr></tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal submit to samplesheet-->
+<div class="modal fade" id="assignModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assign samples to workflow</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <span id="assignModalSampleCount"></span> samples selected.
+
+                <form id="assignForm" action="{{ url_for('samples.assign_samples_view') }}" method="POST">
+                    <div class="form-group">
+                        <label for="workflowInput">Workflow name</label>
+                        <select id="workflowInput" name="workflow" class="custom-select">
+                            {% for workflow in data.workflows %}
+                            <option value="{{ workflow.name|e }}">{{ workflow.display_name }}</option>"
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="batchNameInput">Batch name</label>
+                        <input type="text" class="form-control" id="batchNameInput" name="batch_name">
+                    </div>
+                    <div class="form-group">
+                        <label for="PlateTypeInput">Plate type</label>
+                        <select id="PlateTypeInput" name="plate_type" class="custom-select">
+                        </select>
+                    </div>
+                </form>
+                <div id="modalError" class="alert alert-danger d-none">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button id="assignButton" type="button" class="btn btn-primary">Assign to workflow</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Unassign modal -->
+<div class="modal fade" id="unassignModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unassign samples from batch</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="unassignForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="batchNameUnassignInput">Batch name</label>
+                        <select id="batchNameUnassignInput" name="batch_name" class="custom-select">
+                        </select>
+                    </div>
+                    <div id="modalError" class="alert alert-danger d-none">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button id="unassignButton" type="submit" class="btn btn-primary">Unassign from batch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Report download modal -->
+<div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Download results</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="reportForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="reportWorkdflowBatchInput">Workflow and batch name</label>
+                        <select id="reportWorkdflowBatchInput" name="workflow_batch" class="custom-select">
+                        </select>
+                    </div>
+                    <div id="modalError" class="alert alert-danger d-none">
+                    </div>
+                    <div id="reportLink"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button id="reportButton" type="submit" class="btn btn-primary">Generate Report Link</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+
+
+<script type="text/javascript"
+    src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.21/b-1.6.2/b-html5-1.6.2/sc-2.0.2/sl-1.3.1/datatables.min.js"></script>
+<script src="{{ url_for('static', filename='js/dataTables.altEditor.free.js') }}"></script>
+<script src="https://cdn.datatables.net/plug-ins/1.10.20/api/sum().js"></script>
+<script>
+    $(document).ready(function () {
+        var dataset = JSON.parse('{{ data.samples|tojson }}');
+        var columns = JSON.parse('{{ data.columns|tojson }}');
+        var workflows = JSON.parse('{{ data.workflows|tojson }}');
+
+        // $('#samples-table tfoot th').each(function () {
+        //     var title = $(this).text();
+        //     $(this).html('<input type="text" placeholder="Search ' + title + '" />');
+        // });
+
+
+        function editRow(alteditor, rowdata, success, error) {
+            $.ajax({
+                // a tipycal url would be /{id} with type='POST'
+                url: "{{ url_for('samples.update') }}",
+                type: 'POST',
+                data: JSON.stringify(rowdata),
+                success: success,
+                error: error,
+                contentType: "application/json",
+                dataType: "json"
+            });
+        }
+
+        var urlParams = new URLSearchParams(window.location.search);
+
+        $('#samples-table tfoot th').each(function (i) {
+            if (i != 0) {
+                var title = $(this).text();
+                if (urlParams.has(title)) {
+                    $(this).html('<input type="text" placeholder="Search ' + title + '" value="' + urlParams.get(title) + '"/>');
+                } else {
+                    $(this).html('<input type="text" placeholder="Search ' + title + '" />');
+                }
+            }
+        });
+
+        var table = $('#samples-table').DataTable({
+            data: dataset,
+            paging: true,
+            pageLength: 100,
+            columns: columns,
+            columnDefs: [
+                {
+                    orderable: false,
+                    className: 'select-checkbox',
+                    targets: 0,
+                    width: "12px"
+                },
+                {
+                    targets: 1,
+                    render: function(data) {
+                        return '<a href="/samples/details/' + data + '">' + data + "</a>";
+                    }
+                },
+                {
+                    targets: 8,
+                    render: function(data) {
+                        return data.toLocaleString();
+                    }
+                }
+            ],
+            select: {
+                style: 'os',
+                selector: 'td:first-child'
+            },
+            // Search box in each column
+            initComplete: function () {
+                // Apply the search
+                this.api().columns().every(function () {
+                    var that = this;
+
+                    $('input', this.footer()).on('keyup change clear', function () {
+                        if (that.search() !== this.value) {
+                            that
+                                .search(this.value, true) // regex
+                                .draw();
+                        }
+                    });
+                });
+            },
+            order: [[1, 'asc']],
+            deferRender: true,
+            scrollY: 700,
+            scrollX: true,
+            scrollCollapse: true,
+            scroller: true,
+            dom: 'Bfrtip',
+            onEditRow: editRow,
+            altEditor: true, //Enable alteditor
+            buttons: [
+            {
+                extend: 'selected', // Bind to Selected row
+                text: 'Edit',
+                name: 'edit'        // do not change name
+            },
+            {
+                extend: 'selected', // Bind to Selected row
+                text: 'Delete',
+                name: 'delete'      // do not change name
+            },
+            {
+                text: "Assign to batch",
+                name: "assign",
+                action: function (e, dt, node, config) {
+                    var table = $('#samples-table').DataTable();
+                    var selected_samples = table.rows({ selected: true }).data();
+                    prefillModal(selected_samples);
+                    $('#assignModal').modal()
+                },
+                enabled: false
+            },
+            {
+                text: "Unssign from batch",
+                name: "unassign",
+                action: function (e, dt, node, config) {
+                    var table = $('#samples-table').DataTable();
+                    var selectedSamples = table.rows({ selected: true }).data();
+                    prefillUnassignModal(selectedSamples);
+                    $('#unassignModal').modal()
+                },
+                enabled: false
+            },
+            {
+                text: "Archive",
+                name: "archive",
+                action: function (e, dt, node, config) {
+                    var selected_rows = table.rows({ selected: true }).data();
+                    var selected_samples = [];
+                    selected_rows.each(function (value) {
+                        selected_samples.push(value.barcode);
+                    });
+                    $.ajax({
+                        type: "PUT",
+                        url: "{{ url_for('samples.archive_samples_API') }}",
+                        data: JSON.stringify({"sample_barcodes": selected_samples, "archive": "archive"}),
+                        success: function (data, error) {
+                            if (data.status == "OK") {
+                                location.reload();
+                            } else {
+                                showModalError(data.errors);
+                            }
+                        },
+                        error: function (error) {
+                            console.log(error)
+                        },
+                        dataType: "json",
+                        contentType: "application/json"
+                    });
+                },
+                enabled: false
+            },
+            {
+                text: "Download results",
+                name: "report",
+                action: function (e, dt, node, config) {
+                    var table = $('#samples-table').DataTable();
+                    var selectedSamples = table.rows({ selected: true }).data();
+                    prefillReportModal(selectedSamples);
+                    $('#reportModal').modal();
+                },
+                enabled: false
+            },
+        ]
+        });
+
+
+
+        // // Apply the search
+        // table.columns().eq(0).each(function (colIdx) {
+        //     $('input', table.column(colIdx).header()).on('keyup change', function () {
+        //         table
+        //             .column(colIdx)
+        //             .search(this.value)
+        //             .draw();
+        //     });
+        //     // $('input', table.column(colIdx).header()).trigger('change');
+        // });
+
+        for (var entry of urlParams.entries()) {
+            table.column(entry[0] + ':name').search(decodeURI(entry[1]), true).draw();
+        }
+
+        // Assign/unassign Modals
+        function prefillModal(selected_samples) {
+            $("#assignModalSampleCount").html(selected_samples.length);
+        }
+        function prefillUnassignModal(selected_samples) {
+            $("#batchNameUnassignInput").empty();
+            var batchList = [];
+            selected_samples.each(function(row){
+                for (let i = 0; i < row.batch_json.length; i++) {
+                    const batch = row.batch_json[i];
+                    if (batchList.indexOf(batch) === -1) {
+                        batchList.push(batch);
+                        $("#batchNameUnassignInput").append("<option>" + batch + "</option>");
+                    }
+                }
+            });
+            // $("#assignModalSampleCount").html(selected_samples.length);
+        }
+        $("#unassignForm").on('submit', function(e) {
+            e.preventDefault();
+            var selected_rows = table.rows({ selected: true }).data();
+            var selected_samples = [];
+            selected_rows.each(function (value) {
+                selected_samples.push(value.barcode);
+            });
+            var w_b = $("#batchNameUnassignInput").val();
+            $.ajax({
+                type: "PUT",
+                url: "{{ url_for('samples.unassign_samples_API') }}",
+                data: JSON.stringify({ "sample_barcodes": selected_samples, "workflow_batch": w_b }),
+                success: function (data, error) {
+                    if (data.status == "OK") {
+                        location.reload();
+                    } else {
+                        showModalError(data.errors);
+                    }
+                },
+                error: function (error) {
+                    console.log(error)
+                },
+                dataType: "json",
+                contentType: "application/json"
+            });
+        });
+        function prefillReportModal(selected_samples) {
+            $("#reportWorkdflowBatchInput").empty();
+            var batchList = [];
+            $("#reportLink").html("");
+            selected_samples.each(function (row) {
+                for (let i = 0; i < row.batch_json.length; i++) {
+                    const batch = row.batch_json[i];
+                    if (batchList.indexOf(batch) === -1) {
+                        batchList.push(batch);
+                        $("#reportWorkdflowBatchInput").append("<option>" + batch + "</option>");
+                    }
+                }
+            });
+            // $("#assignModalSampleCount").html(selected_samples.length);
+        }
+        $("#reportForm").on('submit', function (e) {
+            e.preventDefault();
+            var selected_rows = table.rows({ selected: true }).data();
+            var selected_samples = [];
+            selected_rows.each(function (value) {
+                selected_samples.push(value.barcode);
+            });
+            var w_b = $("#reportWorkdflowBatchInput").val();
+            $.ajax({
+                type: "POST",
+                url: "{{ url_for('samples.result_chain') }}",
+                data: JSON.stringify({ "sample_barcodes": selected_samples, "workflow_batch": w_b }),
+                success: function (data, error) {
+                    $("#reportLink").html('<a href="' + data.data.file_id + '">Download report</a>');
+                    // if (data.status == "OK") {
+                    // location.reload();
+                    // } else {
+                    //     showModalError(data.errors);
+                    // }
+                },
+                error: function (error) {
+                    console.log(error)
+                },
+                dataType: "json",
+                contentType: "application/json"
+            });
+        });
+
+
+
+        table.on('select deselect search', function () {
+            var selectedRows = table.rows({ selected: true }).count();
+            table.button("assign:name").enable(selectedRows > 0);
+            table.button("unassign:name").enable(selectedRows > 0);
+            table.button("archive:name").enable(selectedRows > 0);
+            table.button("report:name").enable(selectedRows > 0);
+            if (selectedRows === 0) {
+                selectedRows = table.rows().count();
+                genomeSize = table.rows({search: 'applied'}).data().pluck("genome_size").sum();
+            } else {
+                genomeSize = table.rows({selected: true}).data().pluck("genome_size").sum();
+            }
+            $("#selected-sample-count").text(selectedRows);
+            $("#selected-genome-sum").text(genomeSize.toLocaleString());
+        });
+        $("#samples-table").trigger("select");
+
+
+        // Handle submission of sample assignment to workflows.
+        $("#assignButton").click(function() { $("#assignForm").trigger("submit");})
+
+        $("#assignForm").submit(function (e) {
+            e.preventDefault();
+            
+            var sample_barcodes = [];
+            table.rows({ selected: true }).every( function() {
+                var row = this.data();
+                sample_barcodes.push(row["barcode"]);
+            });
+            var form = $(this);
+            $.each(sample_barcodes, function (subkey, subvalue) {
+                var field = $('<input />');
+                field.attr("type", "hidden");
+                field.attr("name", 'sample_barcodes[]');
+                field.attr("value", subvalue);
+                form.append(field);
+            });
+            this.submit();
+
+        });
+        function showModalError(errors) {
+            errorMsg = "";
+            for (var errorCategory in errors) {
+                errorMsg += errorCategory + ": " + errors[errorCategory] + "\n";
+            }
+            $("#modalError").removeClass("d-none");
+            $("#modalError").text(errorMsg);
+        }
+
+        function updatePlateModal() {
+
+            var workflowName = $("#workflowInput").val();
+            var plates = [];
+            for (let i = 0; i < workflows.length; i++) {
+                if (workflows[i].name == workflowName) {
+                    plates = workflows[i].valid_plate_types;
+                }
+            }
+            var optionsHTML = "";
+            plates.forEach(plate => {
+                optionsHTML = optionsHTML + "<option>" + plate + "</option>";
+            });
+            $("#PlateTypeInput").html(optionsHTML);
+        }
+        updatePlateModal();
+        $("#workflowInput").on("change", updatePlateModal);
+
+        // Batch name input autocomplete
+        $("#batchNameInput").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "{{ url_for('samples.batch_names') }}",
+                    dataType: "json",
+                    data: {
+                        term: request.term,
+                        workflow: $("#workflowInput").val()
+                    },
+                    success: function (data) {
+                        response(data);
+                    }
+                });
+            },
+            minLength: 2,
+            // select: function (event, ui) {
+            //   console.log("Selected: " + ui.item.value + " aka " + ui.item.id);
+            // }
+        }).data("uiAutocomplete")._renderItem = function (ul, item) {
+            $(ul).addClass("modalfront");
+            var html = "<a>" + item.label + "</a>";
+            return $("<li></li>").data("item.autocomplete", item).append(html).appendTo(ul);
+        };
+    });
+</script>
+{% endblock %}

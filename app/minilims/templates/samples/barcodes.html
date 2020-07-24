@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block nav_barcodes %}active{% endblock %}
+{% block style %}
+<style>
+  #data-table span {
+    display: block;
+  }
+  pre {
+    border: 1px solid black;
+    padding: 1em;
+    overflow-x: auto;
+    max-height: 400px;
+  }
+</style>
+{% endblock %}
+{% block header %}
+{% block title %}Barcodes{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Last barcode provided</h6>
+      </div>
+      <div class="card-body">
+        <h2>Last barcode provided to {{ data.group }}</h2>
+        {% if data.last_barcode == None %}
+          None provided yet
+        {% else %}
+          <p class="display-4" id="last_barcode">{{ data.last_barcode }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Get more barcodes</h6>
+      </div>
+      <div id="new-barcodes-div" class="card-body">
+        <label for="barcode-amount">Amount</label>
+        <input id="barcode-amount" type="number" min="0" max="100" step="1">
+        <button id="generate-barcodes">Generate barcodes</button>
+        <pre id="barcode-output"></pre>
+      </div>
+    </div>
+  </div>
+</div>
+{% if data %}
+
+{% endif %}
+{% endblock %}
+{% block scripts %}
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.js"></script>
+  <script>
+    $("#generate-barcodes").on("click", function(){
+      spinner = new Spinner().spin(document.getElementById("new-barcodes-div"));
+      $.ajax(
+        {
+          type: "GET",
+          url: "/samples/barcodes/new/"+ $("#barcode-amount").val(),
+          success: function (data, error) {
+            spinner.stop();
+            if (data.status == "OK") {
+              $("#barcode-output").text(data.data.join("\n"));
+              $("#last_barcode").text(data.data[data.data.length - 1]);
+            }
+          },
+          error: function (error) {
+            spinner.stop();
+            console.log(error);
+          },
+          dataType: "json",
+          contentType: "application/json"
+        }
+      )
+      
+    });
+  </script>
+{% endblock %}

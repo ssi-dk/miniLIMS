@@ -1,0 +1,10 @@
+.app.prod.env
+.app.dev.env
+.mongodb.prod.env
+dev.sh
+__pycache__/
+SSI
+.devcontainer/
+.pytest_cache/
+.vscode/
+.DS_Store

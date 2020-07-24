@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}{% if not data.missing_sample %}{{ data.sample.barcode }}{% else %}Sample not found{% endif %} - Sample details{% endblock %}</h1>
+{% endblock %}
+{% block style %}
+<!-- <style>
+    textarea.step-input-field,
+    textarea.step-output-field {
+        width: 100%;
+    }
+
+    .tooltip {
+        pointer-events: none;
+    }
+
+    .pre-wrap {
+        white-space: pre-wrap;
+    }
+</style> -->
+{% endblock %}
+
+{% block content %}
+{% if data %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h5 class="m-0 font-weight-bold text-primary">Sample metadata</h5>
+            </div>
+            <div class="card-body">
+                {% if data.missing_sample %}
+                    <h2>{{ data.missing_sample }}</h2>
+                {% else %}
+                <strong>Barcode: </strong> {{ data.sample.barcode }}<br />
+                <strong>Supplying lab: </strong> {{ data.sample.properties.group }}<br />
+                <strong>Supplying batch: </strong> Not implemented<br />
+                <strong>Submitted on: </strong> {{ data.sample.properties.submitted_on }}<br />
+                <h6>Additional metadata:</h6>
+                {% for metadata in data.sample.properties.additional_metadata %}
+                <strong>{{ metadata.field_name }}: </strong>{{ metadata.field_value }}
+                {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+        
+    </div>
+    {% if not data.missing_sample %}
+    <div class="col-md-8">
+        <h4>Workflow results</h4>
+        {% for batch in data.sample.batches %}
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h5 class="m-0 font-weight-bold text-primary">{{ batch.display_name }}</h5>
+                <h6 class="m-0 font-weight-bold text-primary">{{ batch.batch_name }}</h6>
+                Position in plate: <strong>{{ batch.position }}</strong>
+
+            </div>
+            <div class="card-body">
+                {% for step in batch.steps %}
+                {% if step.id %}
+                <h5>{{ step.name }} <a href="{{ url_for('lims.step_finished', stepinstanceid=step.id) }}">(more details)</a></h5>
+                {% else %}
+                <h5>{{ step.name }}</h5>
+                {% endif %}
+                <strong>Date started:</strong> {{step.start_date}}<br/>
+                <strong>Date finished:</strong> {{step.finish_date}}<br />
+                <strong>Attempt:</strong> {{step.attempt}}<br />
+                <strong>Values</strong><br />
+                {% for io_value in step.values_all %}
+                {{io_value.name}}: <br />
+                {% if io_value.type == "file" %}
+                <a href="{{ io_value.value }}" download>Download file</a></br>
+                {% else %}
+                <pre>{{io_value.value}}</pre>
+                {% endif %}
+                {% endfor %}
+                {% if step.fields_samples|length > 0 %}
+                    <table id="step-samples">
+                        <thead>
+                            <tr>
+                                <th>Barcode</th>
+                                {% for field in step.fields_samples %}
+                                <th>
+                                    {{ field[0]|e }}
+                                </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for sample in step.values_samples %}
+                            <tr>
+                                <td>{{ sample|e }}</td>
+                                {% for field in step.fields_samples %}
+                                <td>{{ step.values_samples[sample][field[0]] }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    No sample values
+                {% endif %}
+                
+                
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.1/dist/jquery.validate.min.js"></script>
+<script>
+
+</script>
+{% endblock %}

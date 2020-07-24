@@ -1,0 +1,281 @@
+<!doctype html>
+<head>
+  <title>{% block title %}{% endblock %} - miniLIMS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/sb-admin-2.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" type="text/css"
+    href="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.21/b-1.6.2/b-html5-1.6.2/rr-1.2.7/sc-2.0.2/sl-1.3.1/datatables.min.css" />
+  <script src="https://kit.fontawesome.com/24170a81ff.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  {% block style %}{% endblock %}
+</head>
+<body>
+  <div id="wrapper">
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+      <!-- Sidebar - Brand -->
+      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="{{ url_for('lims.index')}}">
+        <div class="sidebar-brand-text mx-3"><sub>mini</sub>LIMS</div>
+      </a>
+      
+      <!-- Divider -->
+      <hr class="sidebar-divider my-0">
+      
+      <!-- Nav Item - Dashboard -->
+      <li class="nav-item {% block nav_index %}{% endblock %}">
+        <a class="nav-link" href="{{ url_for('lims.index')}}">
+          <i class="fas fa-fw fa-tachometer-alt"></i>
+          <span>Dashboard</span></a>
+      </li>
+
+      <li class="nav-item {% block nav_batch_overview %}{% endblock %}">
+        <a class="nav-link" href="{{ url_for('lims.batch_overview')}}">
+          <i class="fas fa-fw fa-stream"></i>
+          <span>Batch Overview</span></a>
+      </li>
+
+      <li class="nav-item {% block nav_species %}{% endblock %}">
+        <a class="nav-link" href="{{ url_for('lims.species')}}">
+          <i class="fas fa-fw fa-bacteria"></i>
+          <span>Species</span></a>
+      </li>
+      <!-- Divider -->
+      <hr class="sidebar-divider">
+      
+      <!-- Heading -->
+      <div class="sidebar-heading">
+        Samples
+      </div>
+      
+      <!-- Nav Item - Browse -->
+      <li class="nav-item {% block nav_browse_samples %}{% endblock %}">
+        <a class="nav-link" href="{{ url_for('samples.samples') }}">
+          <i class="fas fa-fw fa-vials"></i>
+          <span>Browse</span></a>
+      </li>
+
+      <li class="nav-item {% block nav_archived_samples %}{% endblock %}">
+        <a class="nav-link" href="{{ url_for('samples.archived') }}">
+          <i class="fas fa-fw fa-archive"></i>
+          <span>Archived</span></a>
+      </li>
+
+      <li class="nav-item {% block nav_submit_samples %}{% endblock %}">
+        <a class="nav-link" href="{{ url_for('samples.submit') }}">
+          <i class="fas fa-fw fa-upload"></i>
+          <span>Submit</span></a>
+      </li>
+
+      <li class="nav-item {% block nav_barcodes %}{% endblock %}">
+        <a class="nav-link" href="{{ url_for('samples.barcodes') }}">
+          <i class="fas fa-fw fa-barcode"></i>
+          <span>Barcodes</span></a>
+      </li>
+     
+      <!-- Divider -->
+      <hr class="sidebar-divider d-none d-md-block">
+      
+      <!-- Sidebar Toggler (Sidebar) -->
+      <div class="text-center d-none d-md-inline">
+        <button class="rounded-circle border-0" id="sidebarToggle"></button>
+      </div>
+    </ul>
+    <div id="content-wrapper" class="d-flex flex-column">
+      <div id="content">
+        <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+        
+          <!-- Sidebar Toggle (Topbar) -->
+          <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+            <i class="fa fa-bars"></i>
+          </button>
+        
+          <!-- Topbar Search -->
+          <form id="barcode-search-form" class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+            <div class="input-group">
+              <input id="barcode-search" type="text" class="form-control bg-light border-0 small" placeholder="Search for barcode..." aria-label="Search"
+                aria-describedby="basic-addon2">
+              <div class="input-group-append">
+                <button class="btn btn-primary" type="submit">
+                  <i class="fas fa-search fa-sm"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+        
+          <!-- Topbar Navbar -->
+          <ul class="navbar-nav ml-auto">
+        
+            <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+            <li class="nav-item dropdown no-arrow d-sm-none">
+              <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-search fa-fw"></i>
+              </a>
+              <!-- Dropdown - Messages -->
+              <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in" aria-labelledby="searchDropdown">
+                <form class="form-inline mr-auto w-100 navbar-search">
+                  <div class="input-group">
+                    <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
+                      aria-label="Search" aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                      <button class="btn btn-primary" type="button">
+                        <i class="fas fa-search fa-sm"></i>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </li>
+        
+            <!-- Nav Item - Alerts -->
+            <li class="nav-item dropdown no-arrow mx-1">
+              <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-bell fa-fw"></i>
+                <!-- Counter - Alerts -->
+                <!-- <span class="badge badge-danger badge-counter">3+</span> -->
+              </a>
+              <!-- Dropdown - Alerts -->
+              <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                aria-labelledby="alertsDropdown">
+                <h6 class="dropdown-header">
+                  Alerts Center (not implemented)
+                </h6>
+                <!-- <a class="dropdown-item d-flex align-items-center" href="#">
+                  <div class="mr-3">
+                    <div class="icon-circle bg-primary">
+                      <i class="fas fa-file-alt text-white"></i>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="small text-gray-500">December 12, 2019</div>
+                    <span class="font-weight-bold">A new monthly report is ready to download!</span>
+                  </div>
+                </a>
+                <a class="dropdown-item d-flex align-items-center" href="#">
+                  <div class="mr-3">
+                    <div class="icon-circle bg-success">
+                      <i class="fas fa-donate text-white"></i>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="small text-gray-500">December 7, 2019</div>
+                    $290.29 has been deposited into your account!
+                  </div>
+                </a>
+                <a class="dropdown-item d-flex align-items-center" href="#">
+                  <div class="mr-3">
+                    <div class="icon-circle bg-warning">
+                      <i class="fas fa-exclamation-triangle text-white"></i>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="small text-gray-500">December 2, 2019</div>
+                    Spending Alert: We've noticed unusually high spending for your account.
+                  </div>
+                </a>
+                <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a> -->
+              </div>
+            </li>
+        
+            <div class="topbar-divider d-none d-sm-block"></div>
+        
+            {% if g.user %}
+            <!-- Nav Item - User Information -->
+            <li class="nav-item dropdown no-arrow">
+              <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
+                <span class="mr-2 d-none d-lg-inline text-gray-600 small">{{ g.user['username'] }}</span>
+                <!-- <img class="img-profile rounded-circle" src="https://source.unsplash.com/QAB-WJcbgJk/60x60"> -->
+              </a>
+              <!-- Dropdown - User Information -->
+              <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="userDropdown">
+                <!-- <a class="dropdown-item" href="#">
+                  <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Profile
+                </a>
+                <a class="dropdown-item" href="#">
+                  <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Settings
+                </a>
+                <a class="dropdown-item" href="#">
+                  <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Activity Log
+                </a> -->
+                <!-- <div class="dropdown-divider"></div> -->
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                  <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Logout
+                </a>
+              </div>
+            </li>
+            {% endif %}
+        
+          </ul>
+        
+        </nav>
+        <div class="container-fluid">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class=flashes>
+              {% for category, message in messages %}
+              <div class="alert alert-{{category}} shadow mb-3">
+                {{ message }}
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+          {% endwith %}
+        
+          <!-- Page Heading -->
+          <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">{% block header %}{% endblock %}</h1>
+            <!-- <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                class="fas fa-download fa-sm text-white-50"></i> Generate Report</a> -->
+          </div>
+          {% block content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+  <!-- End of wrapper -->
+  <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    style="display: none;" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+          <a class="btn btn-primary" href="{{ url_for('auth.logout') }}">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/jquery-3.4.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+    integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+  <script src="{{ url_for('static', filename='js/jquery.easing.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/sb-admin-2.min.js') }}"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+    $(function () {
+      $("#barcode-search-form").on("submit", function(e) {
+        e.preventDefault();
+        window.location = "{{ url_for('samples.details', sample_barcode='') }}" + $("#barcode-search").val();
+      })
+
+      $("#barcode-search").autocomplete({
+        source: "{{ url_for('samples.searchbox_suggestion') }}",
+        minLength: 3,
+      });
+    });
+  </script>
+  {% block scripts %}{% endblock %}
+</body>

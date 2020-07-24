@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block nav_species %}active{% endblock %}
+{% block style %}
+<style>
+  .table td {
+    padding: .25rem;
+    font-size: 0.85rem;
+  }
+  .pre-wrap {
+    white-space: pre-wrap;
+  }
+</style>
+{% endblock %}
+{% block header %}
+<h1>{% block title %}Species list{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-md-12">
+    {% if data %}
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Samples</h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+            <div class="row">
+              <div class="col-sm-12">
+                <p>
+                  <strong>Warning:</strong> when adding or editing species, make sure the values used in the steps are valid.
+                  Invalid values can cause the step to fail.
+                </p>
+                <table class="table table-bordered dataTable compact" id="samples-table" width="100%" cellspacing="0"
+                  role="grid" style="width: 100%;">
+                  <!-- <thead>
+                    <tr role="row">
+                      {% for element in data.columns %}
+                          <th rowspan="1" colspan="1" style="width: 64px;">{{ element|e }}</th>
+                      {% endfor %}
+                    </tr>
+                  </thead>
+                  <tfoot>
+                    <tr role="row">
+                      {% for element in data.columns %}
+                      <th rowspan="1" colspan="1" style="width: 64px;">{{ element|e }}</th>
+                      {% endfor %}
+                    </tr>
+                  </tfoot>
+                  <tbody>
+                  </tbody> -->
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script type="text/javascript"
+  src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.20/b-1.6.1/b-html5-1.6.1/sc-2.0.1/sl-1.3.1/datatables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.js"></script>
+<script src="{{ url_for('static', filename='js/dataTables.altEditor.free.js') }}"></script>
+<script>
+  $(document).ready(function () {
+      var table = $('#samples-table').DataTable({
+        data: JSON.parse('{{ data.rows|tojson }}'),
+        paging: false,
+        columns: JSON.parse('{{ data.columns|tojson }}'),
+        select: {
+          style: 'os',
+        },
+        order: [[0, 'desc']],
+        dom: 'Bfrtip',
+        // onEditRow: editRow,
+        altEditor: true, //Enable alteditor
+        buttons: [
+          {
+            text: 'Add',
+            name: 'add'        // do not change name
+          },
+          {
+            extend: 'selected', // Bind to Selected row
+            text: 'Edit',
+            name: 'edit'        // do not change name
+          },
+          {
+            extend: 'selected', // Bind to Selected row
+            text: 'Delete',
+            name: 'delete'      // do not change name
+          },
+        ],
+        onAddRow: function (datatable, rowdata, success, error) {
+          $.ajax({
+            // a tipycal url would be / with type='PUT'
+            url: "{{ url_for('lims.species')}}",
+            type: 'PUT',
+            data: JSON.stringify(rowdata),
+            contentType: 'application/json',
+            success: success,
+            error: error
+          });
+        },
+        onDeleteRow: function (datatable, rowdata, success, error) {
+          $.ajax({
+            // a tipycal url would be /{id} with type='DELETE'
+            url: "{{ url_for('lims.species')}}",
+            type: 'DELETE',
+            data: JSON.stringify(rowdata),
+            contentType: 'application/json',
+            success: success,
+            error: error
+          });
+        },
+        onEditRow: function (datatable, rowdata, success, error) {
+          $.ajax({
+            // a tipycal url would be /{id} with type='POST'
+            url: "{{ url_for('lims.species')}}",
+            type: 'POST',
+            data: JSON.stringify(rowdata),
+            contentType: 'application/json',
+            success: success,
+            error: error
+          });
+        }
+      });
+
+    });
+</script>
+{% endblock %}

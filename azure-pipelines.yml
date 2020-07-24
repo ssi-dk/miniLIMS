@@ -1,0 +1,63 @@
+# Docker
+
+# Build a Docker image 
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+  tag: '$(Build.BuildId)'
+
+stages:
+- stage: Build
+  displayName: Build image
+  jobs:  
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - script: |
+        echo MONGO_INITDB_ROOT_USERNAME=mongodbuser > .mongodb.prod.env
+        echo MONGO_INITDB_ROOT_PASSWORD=$(mongodb_admin_password) >> .mongodb.prod.env
+      displayName: Add mongodb credentials
+    - script: |
+        echo MONGODB_USERNAME=flaskuser > .app.prod.env
+        echo MONGODB_PASSWORD=$(mongodb_password) >> .app.prod.env
+      displayName: Add flask mongodb credentials
+    - task: DockerCompose@0
+      inputs:
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: 'Docker hub'
+        dockerComposeFile: './docker-compose.yml'
+        action: 'Run a Docker Compose command'
+        dockerComposeCommand: 'up -d'
+    - task: DockerInstaller@0
+      inputs:
+        dockerVersion: '19.03.4'
+    - script: |
+        docker exec mongodb mongo flaskdb -u mongodbuser -p $(mongodb_admin_password) --authenticationDatabase admin --eval "db.createUser({\"user\": \"flaskuser\", \"pwd\": \"$(mongodb_password)\", \"roles\": [{\"role\": \"readWrite\", \"db\": \"flaskdb\"}]})"
+    - script: |
+        # Move instance folder first
+        docker exec --user root -w /var/www/ flask mv /var/www/instance_example /var/www/instance
+        # Run tests
+        docker exec --user root -w /var/www/ flask python3 -m pytest -v --doctest-modules --junitxml=junit/test-results.xml --cov=minilims --cov-report=xml --cov-report=html
+        docker cp flask:/var/www/junit .
+        docker cp flask:/var/www/coverage.xml .
+        docker cp flask:/var/www/htmlcov .
+
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: 'junit/test-results.xml'
+        testRunTitle: 'Publish test results for Python $(python.version)'
+    - task: PublishCodeCoverageResults@1
+      inputs:
+        codeCoverageTool: cobertura
+        summaryFileLocation: 'coverage.xml'
+        reportDirectory: 'htmlcov'
+        pathToSources: '$(System.DefaultWorkingDirectory)/app'

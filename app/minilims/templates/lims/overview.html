@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% block header %}
+  {% block title %}Overview{% endblock %} 
+  
+{% endblock %}
+{% block nav_index %}active{% endblock %}
+{% block style %}
+<style>
+  a.no-sample-link:not(:hover) {
+    color: #858796;
+  }
+  /* a.no-sample-link:hover {
+    color: inherit;
+  } */
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+  
+    <!-- Unassigned samples -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <a class="div-a" href="{{ url_for('samples.samples', batch='Unassigned') }}">
+        <div class="card border-left-primary shadow h-100 py-2">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Unassigned samples</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.samples_unassigned }}</div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-clock fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+  
+    <!-- Running samples -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <a class="div-a" href="{{ url_for('samples.samples', batch='%5E(?!Unassigned).*$') }}">
+        <div class="card border-left-success shadow h-100 py-2">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Running samples</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.samples_running }}</div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-calendar fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- Total samples -->
+    <div class="col-xl-3 col-md-6 mb-4">
+      <a class="div-a" href="{{ url_for('samples.samples') }}">
+        <div class="card border-left-info shadow h-100 py-2">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Total samples</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.samples_total }}</div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-vials fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <div class="col-xl-3 col-md-6 mb-4">
+      <a class="div-a" href="{{ url_for('samples.archived') }}">
+        <div class="card border-left-secondary shadow h-100 py-2">
+          <div class="card-body">
+            <div class="row no-gutters align-items-center">
+              <div class="col mr-2">
+                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Archived samples</div>
+                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ data.samples_archived }}</div>
+              </div>
+              <div class="col-auto">
+                <i class="fas fa-archive fa-2x text-gray-300"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+
+  {% if data.workflows %}
+  <div class="row">
+    {% for workflow in data.workflows %}
+    <!-- Area Chart -->
+    <div class="col-lg-6">
+      <div class="card shadow mb-4">
+        <!-- Card Header - Dropdown -->
+        <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+          <h6 class="m-0 font-weight-bold text-primary">{{ workflow.name }}</h6>
+          <!-- <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown"
+              aria-haspopup="true" aria-expanded="false">
+              <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+              <div class="dropdown-header">Dropdown Header:</div>
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </div> -->
+        </div>
+        <!-- Card Body -->
+        <div class="card-body">
+          {% for step in workflow['steps'] %}
+          <div class="my-2">
+            {% if step.samples==0 %}
+            <div class="card shadow py-1">
+            {% else %}
+            <div class="card border-left-primary shadow py-1">
+            {% endif %}
+              <div class="card-body py-2">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    {% if step.samples==0 %}
+                    <div class="text-xs font-weight-bold text-uppercase mb-1"><a class="no-sample-link" href="{{ url_for('lims.step_details', stepname=step.name)}}">{{ step.display_name }}</a></div>
+                    {% else %}
+                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1"><a href="{{ url_for('lims.step_details', stepname=step.name)}}">{{ step.display_name }}</a></div>
+                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ step.samples }} samples</div>
+                    {% endif %}
+                  </div>
+                  {% if step.samples!=0 %}
+                  <div class="col-auto">
+                    <a href="{{ url_for('lims.step_overview', step_name=step.name) }}">Start step</a>
+                  </div>
+                  {% endif %}
+                </div> 
+              </div>
+            </div>
+            <!-- <div>
+              {{ step.name }}</br>
+              {{ step.samples }}</br>
+              <a href="{{ '/steps/%s'%step.name }}">Link</a>
+              {% if step.started %}
+              <a href="{{ url_for('lims.step_started', stepinstanceid=step.started) }}">Started</a>
+              {% endif %}
+            </div> -->
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  {% endif %}
+{% endblock %}
+{% block scripts %}
+{% endblock %}

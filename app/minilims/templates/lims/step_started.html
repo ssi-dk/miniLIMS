@@ -1,0 +1,238 @@
+{% extends 'base.html' %}
+{% block header %}
+<h1>{% block title %}Ongoing step{% endblock %}</h1>
+{# {% if g.user %}
+    <a class="action" href="{{ url_for('blog.create') }}">New</a>
+  {% endif %} #}
+
+
+{% endblock %}
+{% block style %}
+<style>
+  textarea.step-input-field,textarea.step-output-field {
+    width: 100%;
+  }
+  .tooltip {
+    pointer-events: none;
+  }
+  .pre-wrap {
+    white-space: pre-wrap;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if data %}
+  <div class="row">
+    <div class="col-md-8">
+      {% if data %}
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Samples</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <div id="dataTable_wrapper" class="dataTables_wrapper dt-bootstrap4">
+              <div class="row">
+                <div class="col-sm-12">
+                  <table class="table table-bordered dataTable compact" id="samples-table" width="100%" cellspacing="0"
+                    role="grid" style="width: 100%;">
+                    <thead>
+                      <tr role="row">
+                        <th rowspan="1" colspan="1" style="width: 64px;">Barcode</th>
+                        <th rowspan="1" colspan="1" style="width: 64px;">Species</th>
+                        <th rowspan="1" colspan="1" style="width: 64px;">Batch</th>
+                      </tr>
+                    </thead>
+                    <tfoot>
+                      <tr role="row">
+                        <th rowspan="1" colspan="1" style="width: 64px;">Barcode</th>
+                        <th rowspan="1" colspan="1" style="width: 64px;">Species</th>
+                        <th rowspan="1" colspan="1" style="width: 64px;">Batch</th>
+                      </tr>
+                    </tfoot>
+                    <tbody>
+                      {% for sample in data.samples %}
+                      <tr role="row" class="odd">
+                        <td>{{ sample.barcode }}</td>
+                        <td>{{ sample.species }}</td>
+                        <td>{{ sample.batch }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    <div class="col-md-4">
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">{{data.step.display_name}} ({{ data.step.version }})</h6>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div id="step-submit-card" class="col-sm-12">
+              {{ data.step.description }}
+              <h3>Provided values</h3>
+              {% if data.provided_values %}
+              {% for field in data.provided_values %}
+              {% if field.multivalue %}
+              <div>
+                <label>{{ field.display_name }}</label>
+                Some of the samples have a diferent value (or file): <br>
+                {% for multivalue in field.multivalue %}
+                  <div>
+                    <a href="#" data-toggle="tooltip" data-placement="bottom" title="{{ multivalue.samples|safe }}">Set {{ multivalue.index }}</a>:
+                    {% if field.type == "file" %}
+                    <a href="{{multivalue.value}}" download>Download</a>
+                    {% elif field.type == "textarea" %}
+                    <textarea readonly class="step-output-field">{{ multivalue.value }}</textarea>
+                    {% else %}
+                    <input value="{{ multivalue.value }}" type="{{ field.type }}" disabled>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <div>
+                <label>{{ field.display_name }}</label>
+                {% if field.type == "file" %}
+                <a href="{{field.value}}" download>Download</a>
+                {% elif field.type == "textarea" %}
+                <textarea readonly class="step-output-field">{{ field.value }}</textarea>
+                {% else %}
+                <input value="{{ field.value }}" type="{{ field.type }}" disabled>
+                {% endif %}
+              </div>
+              {% endif %}
+              {% endfor %}
+              {% else %}
+              <p>No values expected.</p>
+              {% endif %}
+              <h3>Expected values</h3>
+              <form id="finish-step" enctype="multipart/form-data" action="/stepinstance/{{data.step_instance_id}}/end" method="post">
+                {% if data.expected_values %}
+                <div class="mb-3">
+                  {% for field in data.expected_values %}
+                  <div>
+                    <label>{{ field.display_name }}</label>
+                    {% if field.type == "file" %}
+                    <input type="file" name="{{ field.name }}" id="expected-input-{{ field.name }}" required="{{ field.required }}" class="step-input-field">
+                    {% elif field.type == "textarea" %}
+                    <textarea name="{{ field.name }}" id="expected-input-{{ field.name }}" required="{{ field.required }}" class="step-input-field"></textarea>
+                    {% else %}
+                    <input type="text" name="{{ field.name }}" id="expected-input-{{ field.name }}" required="{{ field.required }}" class="step-input-field">
+                    {% endif %}
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <div class="mb-3">
+                  <p>No values expected.</p>
+                </div>
+                {% endif %}
+                <button href="#" id="finish-step-btn" class="btn btn-success">
+                  Finish step
+                </button>
+                <button href="#" id="cancel-step-btn" class="btn btn-warning">
+                Cancel step
+                </button>
+                <pre class="pre-wrap text-danger" id="end-step-msg">
+                </pre>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.1/dist/jquery.validate.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.js"></script>
+<script>
+  $('[data-toggle="tooltip"]').tooltip({ 'container': 'body', "boundary": "viewport"})
+  $("#finish-step").submit(function (e) {
+      e.preventDefault();
+    }).validate({
+      submitHandler: function (form, e) {
+        // var formData = JSON.stringify($("#finish-step").serializeArray());
+        new Spinner().spin(document.getElementById("step-submit-card"));
+        var step_instance_id = "{{ data.step_instance_id|safe }}";
+        var data = new FormData();
+        var expected_values = JSON.parse('{{ data.expected_values|tojson }}');
+        var params = {};
+        var files = {};
+        for (var i = 0; i < expected_values.length; i++) {
+          var exp = expected_values[i];
+          var input = $("#expected-input-" + exp.name);
+          if (exp.type === "file") {
+            data.append(exp.name, input[0].files[0]);
+            files[exp.name] = input[0].files[0];
+          } else {
+            params[exp.name] = input.val();
+          }
+        }
+        data.append("params", JSON.stringify({ "all": params }));
+        $.ajax({
+          type: "POST",
+          url: "/stepinstance/" + step_instance_id + "/end",
+          data: data,
+          contentType: false,
+          processData: false,
+          success: function (data, error) {
+            if (data.status == "OK") {
+              if (data.suggested_step === null) {
+                window.location = "{{ url_for('lims.index') }}";
+              } else {
+                var alternative_steps = data.alternative_steps.join(":");
+                window.location = "{{ url_for('lims.step_finished', stepinstanceid=data.step_instance_id) }}?sug_step=" + 
+                data.suggested_step + "&other_steps=" + alternative_steps + "&reassign=True";
+              }
+            } else if (data.status === "Fail") {
+              var errorstring = "";
+              for (key in data.errors) {
+                errorstring = errorstring + key + ": " + data.errors[key];
+              }
+              $("#end-step-msg").html(errorstring);
+            }
+          },
+          error: function (error) {
+            console.log(error)
+          },
+          dataType: "json"
+        });
+      }
+    });
+
+    document.getElementById("finish-step-btn").onclick = function () {
+      $("#finish-step").validate();
+    }
+
+  document.getElementById("cancel-step-btn").onclick = function(e){
+    e.preventDefault();
+    var step_instance_id = "{{ data.step_instance_id|safe }}";
+    $.ajax({
+      type: "POST",
+      url: "/stepinstance/" + step_instance_id + "/cancel",
+      contentType: false,
+      processData: false,
+      success: function (data, error) {
+        if (data.status == "Cancelled") {
+          window.location = "/steps/{{data.step.name}}";
+        }
+      },
+      error: function (error) {
+        console.log(error)
+      },
+      dataType: "json"
+    });
+  }
+</script>
+{% endblock %}
