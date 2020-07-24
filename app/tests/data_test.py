@@ -101,27 +101,6 @@ workflows = [
             "96plate"
         ]
     },
-    {
-        'name': 'wgs_routine',
-        'display_name': 'WGS routine [DRAFT]',
-        'steps': [
-            "wgs_01_dna_extraction",
-            "wgs_02_quantification_1",
-            "wgs_02-5_qc_1",
-            "wgs_03_dillution_1",
-            "wgs_04_quantification_2",
-            "wgs_05_dillution_2",
-            "wgs_05-5_qc_2",
-            "wgs_06_library_prep",
-            "wgs_07_quantification_postlib",
-            "wgs_08_normalization_pool",
-            "wgs_09_sequencing",
-            "wgs_10_send_to_bifrost"
-        ],
-        "valid_plate_types": [
-            "96plate"
-        ]
-    }
 ]
 
 batch_name = "Batch01"
@@ -145,7 +124,7 @@ attached = {
     'none': {},
     'in1': {"params": '{"all": {"in1": 123123}}'},
     'illu': {'samplesheet_csv': (io.BytesIO(b"This is the placeholder for an illumina file"), "filename.csv")},
-    # Same as illu, but it can only be used for one test.
+    # Same as illu, but each can only be used for one test.
     'illu2': {'samplesheet_csv': (io.BytesIO(b"This is the placeholder for an illumina file"), "filename.csv")},
     'illu3': {'samplesheet_csv': (io.BytesIO(b"This is the placeholder for an illumina file"), "filename.csv")}
 }
