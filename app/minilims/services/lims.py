@@ -117,10 +117,10 @@ def get_workflows_overview(user):
                         started_id = str(started._id)
                 samples = len(step.available_samples())
                 workflow["steps"].append({"name": step.name,
-                                        "display_name": step.display_name,
-                                        "samples": samples,
-                                        "_id": str(step._id),
-                                        "started": started_id})
+                                          "display_name": step.display_name,
+                                          "samples": samples,
+                                          "_id": str(step._id),
+                                          "started": started_id})
             data["workflows"].append(workflow)
     return data
 

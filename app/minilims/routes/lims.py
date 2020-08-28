@@ -1,5 +1,5 @@
 from flask import (
-    Blueprint, flash, g, jsonify, render_template, request, make_response, current_app
+    Blueprint, flash, g, jsonify, render_template, request, make_response, current_app, session
 )
 from werkzeug.exceptions import abort
 from minilims.routes.auth import login_required, login_required_API, permission_required_API, permission_required
