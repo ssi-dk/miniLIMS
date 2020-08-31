@@ -86,11 +86,13 @@ def test_dev(stop_at_step=-1):
         step_data_dict = dtr.step_data
         samplesheet = dtr.samplesheets
         sample_barcodes = dtr.barcodes
+        workflow = dtr.workflows[0]
+
     else:
         step_data_dict = dt.step_data
         samplesheet = dt.samplesheets_success
         sample_barcodes = dt.barcodes[0]
-    workflow = dt.workflows[3]
+        workflow = dt.workflows[3]
     # s_lims.import_steps(workflow["steps"])
     # s_lims.import_workflow(workflow)
 
