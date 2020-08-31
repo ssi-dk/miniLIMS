@@ -6,22 +6,32 @@ from werkzeug.security import check_password_hash, generate_password_hash
 import minilims.models.user as m_user
 import minilims.models.role as m_role
 
-def register_user(username, password, roles=[], group="default"):
-    error = None
-    if not username:
-        error = 'Username is required.'
-    elif not password:
-        error = 'Password is required.'
-    else:
-        try:
-            user = m_user.User(username=username,
-                               password=generate_password_hash(password),
-                               group=group).save(force_insert=True)
-            for role in roles:
-                user.add_role(role)
-        except DuplicateKeyError:
-            error = 'User {} is already registered.'.format(username)
-    return error
+def register(acc):
+    m_user.User(
+        oid=acc["id"],
+        display_name=acc["displayName"],
+        email=acc["mail"]
+    ).save()
+
+def check_if_user_exists(oid):
+    return m_user.User.objects.raw({"oid": oid}).count() > 0
+
+# def register_user(username, password, roles=[], group="default"):
+#     error = None
+#     if not username:
+#         error = 'Username is required.'
+#     elif not password:
+#         error = 'Password is required.'
+#     else:
+#         try:
+#             user = m_user.User(username=username,
+#                                password=generate_password_hash(password),
+#                                group=group).save(force_insert=True)
+#             for role in roles:
+#                 user.add_role(role)
+#         except DuplicateKeyError:
+#             error = 'User {} is already registered.'.format(username)
+#     return error
 
 def validate_add_role_to_user(username, rolename, submitter):
     """

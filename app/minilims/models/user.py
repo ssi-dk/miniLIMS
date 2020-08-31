@@ -5,9 +5,12 @@ from minilims.models.role import Role
 
 
 class User(MongoModel):
-    # email = fields.EmailField(primary_key=True)
-    username = fields.CharField(required=True) # Initials
-    password = fields.CharField(required=True)
+    email = fields.EmailField(required=True)
+    # username = fields.CharField(required=True) # Initials
+    # password = fields.CharField(required=True)
+    oid =  fields.CharField(required=True)
+    display_name = fields.CharField()
+    
     group = fields.CharField()
     meta = {
         "indexes": [

@@ -122,6 +122,7 @@ def get_workflows_overview(user):
                                           "_id": str(step._id),
                                           "started": started_id})
             data["workflows"].append(workflow)
+            print('w', workflow)
     return data
 
 def get_batch_overview():

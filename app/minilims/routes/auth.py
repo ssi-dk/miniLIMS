@@ -53,7 +53,7 @@ def authorized():
     if request.args.get('state') != session.get("state"):
         return redirect(url_for("index"))  # No-OP. Goes back to Index page
     if "error" in request.args:  # Authentication/Authorization failure
-        return render_template("auth_error.html", result=request.args)
+        return render_template("auth/display.html", result=request.args)
     if request.args.get('code'):
         cache = _load_cache()
         result = _build_msal_app(cache=cache).acquire_token_by_authorization_code(
@@ -61,10 +61,19 @@ def authorized():
             scopes=current_app.config["SCOPE"],  # Misspelled scope would cause an HTTP 400 error here
             redirect_uri=url_for("auth.authorized", _external=True))
         if "error" in result:
-            return render_template("auth_error.html", result=result)
+            return render_template("auth/display.html", result=result)
         session["user"] = result.get("id_token_claims")
         _save_cache(cache)
-    return redirect(url_for("samples.submit"))
+        exists = s_auth.check_if_user_exists(session["user"]["oid"])
+        if not exists:
+            token = _get_token_from_cache(current_app.config["SCOPE"])
+            account = requests.get(  # Use token to call downstream service
+                current_app.config["ENDPOINT"],
+                headers={'Authorization': 'Bearer ' + token['access_token']},
+            ).json()
+            s_auth.register(account)
+
+    return redirect(url_for("index"))
 
 
 # def login():
@@ -89,21 +98,23 @@ def authorized():
 
 #     return render_template('auth/login.html')
 
-# @bp.before_app_request
-# def load_logged_in_user():
-#     user_id = session.get('user_id')
-#     if user_id is None:
-#         g.user = None
-#     else:
-#         try:
-#             g.user = User.objects.get({"_id": ObjectId(user_id)})
-#         except User.DoesNotExist:
-#             g.user = None
+@bp.before_app_request
+def load_logged_in_user():
+    user = session.get('user')
+    if user is None:
+        g.user = None
+    else:
+        try:
+            g.user = User.objects.get({"oid": user["oid"]})
+        except User.DoesNotExist:
+            g.user = None
 
 @bp.route('/logout')
 def logout():
-    # session.clear()
-    return redirect(url_for('index'))
+    session.clear()
+    return redirect(  # Also logout from your tenant's web session, not needed if not oauth
+        current_app.config["AUTHORITY"] + "/oauth2/v2.0/logout" +
+        "?post_logout_redirect_uri=" + url_for("auth.login", _external=True))
 
 @bp.route('/u/<username>/addrole/<rolename>', methods=["POST"])
 def add_role_to_user(username, rolename):
