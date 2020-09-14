@@ -49,7 +49,7 @@ def import_config_command():
 def init_commands(app):
     app.cli.add_command(clear_db_command)
     app.cli.add_command(import_config_command)
-    app.cli.add_command(test_dev)
+    app.cli.add_command(test_dev_command)
     app.cli.add_command(create_demo_users_command)
 
 
@@ -68,7 +68,11 @@ def create_demo_users_command():
 @click.command('test_dev')
 @click.argument('stop_at_step', required=False)
 @with_appcontext
-def test_dev(stop_at_step=-1):
+def test_dev_command(stop_at_step=-1):
+    test_dev(stop_at_step)
+
+
+def test_dev(stop_at_step):
     import tests.data_test as dt
     from minilims.models.step import Step
     from minilims.models.step_instance import Step_instance
