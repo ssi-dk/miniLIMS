@@ -7,6 +7,7 @@ tests/test_real_data.py
 tests/data_test_real_files/*
 prof/
 .vscode
+flask_session
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
