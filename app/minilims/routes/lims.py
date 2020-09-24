@@ -1,8 +1,9 @@
 from flask import (
-    Blueprint, flash, g, jsonify, render_template, request, make_response, current_app, session
+    Blueprint, flash, g, jsonify, render_template, redirect,
+    request, make_response, current_app, url_for
 )
 from werkzeug.exceptions import abort
-from minilims.routes.auth import login_required, login_required_API, permission_required_API, permission_required
+from minilims.routes.auth import login_required, permission_required_API, permission_required
 import minilims.models.step_instance as m_step_instance
 import minilims.services.lims as lims_service
 import minilims.services.species as species_service
@@ -13,7 +14,6 @@ import bson.objectid
 import json
 
 bp = Blueprint('lims', __name__)
-
 
 @bp.route('/')
 @login_required
@@ -243,3 +243,18 @@ def species():
             return jsonify(data)
         else:
             return jsonify(errors=errors), 422
+
+@bp.route("/warning_reset_db")
+@permission_required("admin_all")
+def warning_reset_db():
+    """
+    WARNING: This button resets the db, enable only for debugging purposes in test environment
+    """
+    import minilims.services.db
+    if current_app.config["DEBUG"]:
+        minilims.services.db.clear_db(current_app)
+        minilims.services.db.test_dev(0)
+        flash("Database reset", "success")
+    else:
+        flash("Not allowed by config", "danger")
+    return redirect(url_for("lims.index"))

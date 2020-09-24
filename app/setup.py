@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='minilims',
-    version='0.2',
+    version='0.2.1',
     description='Simple Laboratory Information Management System made for Statens Serum Institut',
     # url='',
     author="Martin Basterrechea",
