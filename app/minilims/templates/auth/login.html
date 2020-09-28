@@ -5,13 +5,8 @@
 {% endblock %}
 
 {% block content %}
-  <form method="post">
-    <label for="username">Username</label>
-    <input name="username" id="username" required>
-    <label for="password">Password</label>
-    <input type="password" name="password" id="password" required>
-    <input type="submit" value="Log In">
-  </form>
+  
+  {% if config.LOGIN_TYPE == "MICROSOFT_AUTH" %}
   <h1>Microsoft Identity Python Web App</h1>
   
   <li><a href='{{ auth_url }}'>Sign In</a></li>
@@ -19,7 +14,15 @@
   {% if config.get("B2C_RESET_PASSWORD_AUTHORITY") %}
   <li><a href='{{_build_auth_url(authority=config["B2C_RESET_PASSWORD_AUTHORITY"])}}'>Reset Password</a></li>
   {% endif %}
-  
-  <hr>
-  <footer style="text-align: right">Powered by MSAL Python {{ version }}</footer>
+  {% endif %}
+  {% if config.LOGIN_TYPE == "USER_PASSWORD" %}
+  <form method="post">
+    <label for="email">Email</label>
+    <input name="email" id="email" type="email" required>
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" required>
+    <input type="submit" value="Log In">
+  </form>
+  {% endif %}
+
 {% endblock %}

@@ -6,20 +6,12 @@ from minilims.models.role import Role
 
 class User(MongoModel):
     email = fields.EmailField(required=True)
-    # username = fields.CharField(required=True) # Initials
-    # password = fields.CharField(required=True)
-    oid =  fields.CharField(required=True)
+    # username = fields.CharField(required=True) # Initials Replaced for email
+    password = fields.CharField()
+    oid = fields.CharField()
     display_name = fields.CharField()
     
     group = fields.CharField()
-    meta = {
-        "indexes": [
-            {
-                "fields": ["username"],
-                "unique": True
-            }
-        ]
-    }
     roles = fields.ListField(fields.ReferenceField(Role), blank=True)
     permissions_denormalized = fields.ListField(fields.CharField(), blank=True)
 
@@ -53,7 +45,6 @@ class User(MongoModel):
         return ("admin_all" in self.permissions_denormalized
                 or permission in self.permissions_denormalized)
 
-
     class Meta:
         write_concern = WriteConcern(j=True)
-        indexes = [IndexModel([("username", 1)], unique=True)]
+        indexes = [IndexModel([("email", 1)], unique=True)]

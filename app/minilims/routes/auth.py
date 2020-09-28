@@ -18,9 +18,9 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
-        username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
-        error = s_auth.register_user(username, password)
+        error = s_auth.register_user(email, password)
         if error is None:
             flash("Registered successfully")
             return redirect(url_for('auth.login'))
@@ -40,13 +40,34 @@ def graphcall():
         ).json()
     return render_template('auth/display.html', result=graph_data)
 
-@bp.route('/login')
+@bp.route('/login', methods=["GET", "POST"])
 def login():
-    session["state"] = str(uuid.uuid4())
-    # Technically we could use empty list [] as scopes to do just sign in,
-    # here we choose to also collect end user consent upfront
-    auth_url = _build_auth_url(scopes=current_app.config["SCOPE"], state=session["state"])
-    return render_template("auth/login.html", auth_url=auth_url, version=msal.__version__)
+    if request.method == "GET":
+        if current_app.config["LOGIN_TYPE"] == "MICROSOFT_AUTH":
+            session["state"] = str(uuid.uuid4())
+            # Technically we could use empty list [] as scopes to do just sign in,
+            # here we choose to also collect end user consent upfront
+            auth_url = _build_auth_url(scopes=current_app.config["SCOPE"], state=session["state"])
+            return render_template("auth/login.html", auth_url=auth_url, version=msal.__version__)
+    elif request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        error = None
+        try:
+            user = User.objects.get({"email": email})
+        except User.DoesNotExist:
+            error = "Incorrect email."
+        else:
+            if not check_password_hash(user.password, password):
+                error = 'Incorrect password.'
+
+        if error is None:
+            session.clear()
+            session['user'] = str(user._id)
+            return redirect(url_for('index'))
+
+        flash(error)
+    return render_template('auth/login.html')
 
 @bp.route("/getAToken")  # Its absolute URL must match your app's redirect_uri set in AAD
 def authorized():
@@ -105,7 +126,10 @@ def load_logged_in_user():
         g.user = None
     else:
         try:
-            g.user = User.objects.get({"oid": user["oid"]})
+            if current_app.config["LOGIN_TYPE"] == "MICROSOFT_AUTH":
+                g.user = User.objects.get({"oid": user["oid"]})
+            else:
+                g.user = User.objects.get({"_id": ObjectId(user)})
         except User.DoesNotExist:
             g.user = None
 
@@ -116,15 +140,15 @@ def logout():
         current_app.config["AUTHORITY"] + "/oauth2/v2.0/logout" +
         "?post_logout_redirect_uri=" + url_for("auth.login", _external=True))
 
-@bp.route('/u/<username>/addrole/<rolename>', methods=["POST"])
-def add_role_to_user(username, rolename):
+@bp.route('/u/<email>/addrole/<rolename>', methods=["POST"])
+def add_role_to_user(email, rolename):
     """
     Requires admin role. Adds role to user.
     """
-    errors = s_auth.validate_add_role_to_user(username, rolename, g.user)
+    errors = s_auth.validate_add_role_to_user(email, rolename, g.user)
 
     if len(errors) == 0:
-        s_auth.add_role_to_user(username, rolename)
+        s_auth.add_role_to_user(email, rolename)
         status = "OK"
     else:
         status = "Fail"
@@ -133,15 +157,15 @@ def add_role_to_user(username, rolename):
         "status": status
     })
 
-@bp.route('/u/<username>/removerole/<rolename>', methods=["POST"])
-def remove_role_from_user(username, rolename):
+@bp.route('/u/<email>/removerole/<rolename>', methods=["POST"])
+def remove_role_from_user(email, rolename):
     """
     Requires admin role. Removes role from user.
     """
-    errors = s_auth.validate_remove_role_from_user(username, rolename)
+    errors = s_auth.validate_remove_role_from_user(email, rolename)
 
     if len(errors) == 0:
-        s_auth.remove_role_from_user(username, rolename)
+        s_auth.remove_role_from_user(email, rolename)
         status = "OK"
     else:
         status = "Fail"
