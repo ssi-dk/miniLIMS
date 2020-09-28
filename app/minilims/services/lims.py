@@ -453,7 +453,7 @@ def end_step(step_instance_id, params, user):
     }
 
 def get_step_finished(stepinstanceid, suggested_step, alternative_step_names, reassign_qc_fail):
-    if suggested_step is not None:
+    if suggested_step is not None and suggested_step != "_workflow_finished":
         step = m_step.Step.objects.get({"name": suggested_step})
         step_summary = step.summary()
     else:
