@@ -18,7 +18,7 @@ def clear_db(db):
 
 
 def populate_db():
-    User(username="test",
+    User(email="test@test.com",
          password="pbkdf2:sha256:150000$L3ipk11Y$c4511ddc1cef3d638e7c60985a7f925574dd8a8ede8fa6d0e0369bb83affcb11",
          _id="5dbbefc2263b8ecd0c83dad5",
          group="TST",

@@ -59,10 +59,10 @@ def init_commands(app):
 def create_demo_users_command():
     """Create demo users in db."""
     from minilims.services.auth import register_user
-    register_user("supplying lab", "supplying lab", roles=["supplying_lab_user"], group="MPV")
-    register_user("supplying lab FBI", "supplying lab FBI", roles=["supplying_lab_user"], group="FBI")
-    register_user("lab manager", "lab manager", ["NGS_lab_manager"], group="MPV")
-    register_user("lab technician", "lab technician", ["lab_technician"], group="MPV")
+    register_user("supplying_lab@test.com", "supplying lab", roles=["supplying_lab_user"], group="MPV")
+    register_user("supplying_lab_FBI@test.com", "supplying lab FBI", roles=["supplying_lab_user"], group="FBI")
+    register_user("lab_manager@test.com", "lab manager", ["NGS_lab_manager"], group="MPV")
+    register_user("lab_technician@test.com", "lab technician", ["lab_technician"], group="MPV")
     click.echo('Demo users created.')
 
 @click.command('test_dev')
