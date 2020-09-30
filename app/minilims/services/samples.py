@@ -13,6 +13,7 @@ import minilims.utils.fileutils as fileutils
 
 # from minilims.models.user import User
 
+
 def get_emails(e_str):
     """
     Split email string and clean spaces.
@@ -53,7 +54,8 @@ def submit_samplesheet(samplesheet, user):
             submitted_species=species,
             submitted_species_name=species.name,
             emails=emails,
-            cost_center=row.get("costcenterssi")
+            cost_center=row.get("costcenterssi"),
+            submission_comments=row.get("comments")
         )
         summary.clean_fields()
         s_info = m_sample.S_info(summary=summary)
@@ -68,6 +70,7 @@ def submit_samplesheet(samplesheet, user):
 
     #Done at the end to prevent crashing mid-save
     m_sample.Sample.objects.bulk_create(samples)
+
 
 def validate_assign(jsonbody):
     """
@@ -174,6 +177,7 @@ def validate_unassign(jsonbody):
                 ",".join(not_assigned))
     return errors, warnings
 
+
 def assign_samples(jsonbody):
     batch_name = jsonbody["batch_name"]
     index = 0
@@ -200,6 +204,7 @@ def assign_samples(jsonbody):
                 sample = m_sample.Sample.objects.get({"barcode": barcode})
                 plate_position = plate_view["free_spots"][i]
                 sample.assign_workflow(workflow, batch_name, plate_position, plate_type, prev_step_cat)
+
 
 def unassign_samples(jsonbody):
     # batch_name = jsonbody["batch_name"]
@@ -230,6 +235,7 @@ def samples_overview(user):
         "workflows": m_workflow.Workflow.get_workflows(),
     }
 
+
 def archived_samples():
     return {
         "columns": [
@@ -242,6 +248,7 @@ def archived_samples():
         ],
         "species": Species.get_name_list()
     }
+
 
 def archive_samples(sample_barcodes, archive):
     samples = m_sample.Sample.objects.raw({"barcode": {"$in": sample_barcodes}})

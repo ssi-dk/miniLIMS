@@ -80,6 +80,7 @@ class S_summary(EmbeddedMongoModel):
     submitted_species_name = fields.CharField(required=True)
     emails = fields.ListField(field=fields.EmailField(), blank=True)
     cost_center = fields.CharField(required=True, blank=True)
+    submission_comments = fields.CharField(required=True, blank=True)
 
 
 class S_info(EmbeddedMongoModel):
@@ -262,6 +263,11 @@ class Sample(MongoModel):
                     "name": "group"
                 },
                 {
+                    "data": "cost_center",
+                    "title": "Cost Center",
+                    "name": "cost_center"
+                },
+                {
                     "data": "batch",
                     "title": "batch",
                     "type": "select",
@@ -270,10 +276,16 @@ class Sample(MongoModel):
                     "name": "batch"
                 },
                 {
-                    "data":"genome_size",
+                    "data": "genome_size",
                     "title": "Genome size",
                     "readonly": "true",
                     "name": "genome_size"
+                },
+                {
+                    "data": "submission_comments",
+                    "title": "Comments",
+                    "readonly": "true",
+                    "name": "submission_comments"
                 },
                 {
                     "data": "archived",
@@ -310,12 +322,12 @@ class Sample(MongoModel):
                         "$unwind": {
                             "path": "$batches"
                         }
-                    }, 
+                    },
                     {
                         "$match": {
                             "batches.workflow": workflow._id
                         }
-                    }, 
+                    },
                     {
                         "$group": {
                             "_id": "$batches.batch_name"
@@ -817,6 +829,8 @@ class Sample(MongoModel):
                     "group": self.properties.sample_info.summary.group,
                     "species": self.properties.sample_info.summary.submitted_species.name,
                     "batch": batch,
+                    "submission_comments": self.properties.sample_info.summary.submission_comments,
+                    "cost_center": self.properties.sample_info.summary.cost_center,
                     "archived": self.archived,
                     "batch_json": batches,
                     "positions": positions,

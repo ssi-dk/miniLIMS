@@ -9,7 +9,10 @@ samplesheets_fail = (
     [{"sampleid":"1","barcode":"ABC","organism":"E. coli","emails":"email@test.com"},{"sampleid":"2","barcode":"ABC","organism":"E. coli","emails":"email@test.com"}],
 )
 
-samplesheets_success = [{"sampleid":"1","barcode":"ABZ","organism":"E. coli","emails":"email@test.com","priority": "low"},{"sampleid":"2","barcode":"ABC","organism":"E. coli","priority": "high", "emails":"email@test.com"}]
+samplesheets_success = [{"sampleid":"1","barcode":"ABZ","organism":"E. coli", "comments": "asdasd",
+                         "emails":"email@test.com","priority": "low", "costcenterssi": "123456"},
+                        {"sampleid":"2","barcode":"ABC","organism":"E. coli","priority": "high", 
+                         "emails":"email@test.com", "costcenterssi": "123455", "comments": "Septim"}]
 
 errors = (
     {"errors": {"rows": {'1': ["Missing required column(s): ['organism']", 'Invalid value for field emails (emailtest.com)']}}},
@@ -40,6 +43,7 @@ dbentries_success = [
                     "cost_center": None,
                     "group": "TST",
                     "priority": 0,
+                    "submission_comments": "asdsasd",
                     '_cls': 'minilims.models.sample.S_summary'
                 },
                 '_cls': 'minilims.models.sample.S_info'
@@ -62,6 +66,7 @@ dbentries_success = [
                     "group": "TST",
                     "priority": 4,
                     "cost_center": None,
+                    "submission_comments": "Septim",
                     '_cls': 'minilims.models.sample.S_summary'
                 },
                 '_cls': 'minilims.models.sample.S_info'
