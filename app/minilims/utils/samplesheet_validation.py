@@ -9,7 +9,8 @@ from pymodm.errors import DoesNotExist
 
 ### Validation parameters
 required_columns = ["sampleid", "barcode", "organism"]
-valid_columns = required_columns + ["emails", "priority", "supplydate", "costcenterssi", "comments"]
+valid_columns = required_columns + ["emails", "priority", "supplydate", 
+                                    "costcenterssi", "comments"]
 species_col = "organism"
 
 

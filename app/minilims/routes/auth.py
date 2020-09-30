@@ -18,9 +18,12 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 @bp.route('/register', methods=('GET', 'POST'))
 def register():
     if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        error = s_auth.register_user(email, password)
+        acc = {
+            "mail": request.form['email'],
+            "password": request.form['password']
+        }
+        
+        error = s_auth.register(acc)
         if error is None:
             flash("Registered successfully")
             return redirect(url_for('auth.login'))
@@ -97,28 +100,6 @@ def authorized():
     return redirect(url_for("index"))
 
 
-# def login():
-#     if request.method == 'POST':
-#         username = request.form['username']
-#         password = request.form['password']
-#         error = None
-#         try:
-#             user = User.objects.get({"username":username})
-#         except User.DoesNotExist:
-#             error = "Incorrect username."
-#         else:
-#             if not check_password_hash(user.password, password):
-#                 error = 'Incorrect password.'
-
-#         if error is None:
-#             session.clear()
-#             session['user_id'] = str(user._id)
-#             return redirect(url_for('index'))
-
-#         flash(error)
-
-#     return render_template('auth/login.html')
-
 @bp.before_app_request
 def load_logged_in_user():
     user = session.get('user')
@@ -145,7 +126,7 @@ def add_role_to_user(email, rolename):
     """
     Requires admin role. Adds role to user.
     """
-    errors = s_auth.validate_add_role_to_user(email, rolename, g.user)
+    errors = s_auth.validate_add_role_to_user(email, rolename)
 
     if len(errors) == 0:
         s_auth.add_role_to_user(email, rolename)

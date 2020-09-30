@@ -1,45 +1,52 @@
 from flask import g
+from flask.globals import current_app
 from pymodm.errors import DoesNotExist
 from pymongo.errors import DuplicateKeyError
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import generate_password_hash
 
 import minilims.models.user as m_user
 import minilims.models.role as m_role
 
-def register(acc):
-    m_user.User(
-        oid=acc["id"],
-        display_name=acc["displayName"],
-        email=acc["mail"]
-    ).save()
 
 def check_if_user_exists(oid):
     return m_user.User.objects.raw({"oid": oid}).count() > 0
 
-# def register_user(username, password, roles=[], group="default"):
-#     error = None
-#     if not username:
-#         error = 'Username is required.'
-#     elif not password:
-#         error = 'Password is required.'
-#     else:
-#         try:
-#             user = m_user.User(username=username,
-#                                password=generate_password_hash(password),
-#                                group=group).save(force_insert=True)
-#             for role in roles:
-#                 user.add_role(role)
-#         except DuplicateKeyError:
-#             error = 'User {} is already registered.'.format(username)
-#     return error
+def register(acc):
+    if current_app.config["LOGIN_TYPE"] == "MICROSOFT_AUTH":
+        m_user.User(
+            oid=acc["id"],
+            display_name=acc["displayName"],
+            email=acc["mail"]
+        ).save()
+    elif current_app.config["LOGIN_TYPE"] == "USER_PASSWORD":
+        mail = acc.get("mail")
+        pwd = acc.get("password")
+        grp = acc.get("group", "default")
+        roles = acc.get("roles", [])
 
-def validate_add_role_to_user(email, rolename, submitter):
+        error = None
+        if not acc.get("mail"):
+            error = 'Email is required.'
+        elif not acc.get("password"):
+            error = 'Password is required.'
+        else:
+            try:
+                user = m_user.User(email=mail,
+                                password=generate_password_hash(pwd),
+                                group=grp).save()#force_insert=True)
+                for role in roles:
+                    user.add_role(role)
+            except DuplicateKeyError:
+                error = 'User {} is already registered.'.format(mail)
+        return error
+
+def validate_add_role_to_user(email, rolename):
     """
     Check user has admin role, role and email exist,
     and user doesn't have that role.
     """
+
     errors = {}
-    print(submitter)
     if not g.user.has_permission("admin_user_roles"):
         errors["user_permissions"] = "Unauthorized."
         return errors

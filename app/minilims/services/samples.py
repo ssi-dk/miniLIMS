@@ -22,15 +22,17 @@ def get_emails(e_str):
     emails = e_str.split(",")
     return [e.strip() for e in emails]
 
+
 validate_samplesheet = samplesheet_validation.validate
+
 
 def submit_samplesheet(samplesheet, user):
     """
     Submit samplesheet to the system.
     """
     priority_map = {
-        "low" : 0,
-        "high" : 4
+        "low": 0,
+        "high": 4
     }
     samples = []
     for row in samplesheet:
@@ -50,7 +52,8 @@ def submit_samplesheet(samplesheet, user):
             priority=priority_map[row.get("priority", "low").lower()],
             submitted_species=species,
             submitted_species_name=species.name,
-            emails=emails
+            emails=emails,
+            cost_center=row.get("costcenterssi")
         )
         summary.clean_fields()
         s_info = m_sample.S_info(summary=summary)
@@ -217,72 +220,7 @@ def samples_overview(user):
         group = user.group
         samples_db = m_sample.Sample.objects.raw({"properties.sample_info.summary.group": group})
     species_options = Species.get_name_list()
-    columns = [
-        {
-            "data": "none",
-            "type": "hidden"
-        },
-        {
-            "data": "barcode",
-            "title": "barcode",
-            "readonly": "true",
-            "unique": "true",
-            "name": "barcode"
-        },
-        {
-            "data": "name",
-            "title": "name",
-            "name": "name"
-        },
-        {
-            "data": "submitted_on",
-            "title": "Submission date",
-            "readonly": "true",
-            "name": "submitted_on"
-        },
-        {
-            "data": "priority",
-            "title": "Priority",
-            "type": "select",
-            "options": {"low": "Low", "high": "High"},
-            "name": "priority"
-        },
-        {
-            "data": "species",
-            "title": "species",
-            "type": "select",
-            "options": species_options,
-            "name": "species"
-
-        },
-        {
-            "data": "group",
-            "title": "supplying_lab",
-            "name": "group"
-        },
-        {
-            "data": "batch",
-            "title": "batch",
-            "type": "select",
-            "multiple": "true",
-            "readonly": "true",
-            "name": "batch"
-        },
-        {
-            "data":"genome_size",
-            "title": "Genome size",
-            "readonly": "true",
-            "name": "genome_size"
-        },
-        {
-            "data": "archived",
-            "title": "archived",
-            "type": "select",
-            "options": ["true", "false"],
-            "name": "archived"
-
-        }
-    ]
+    columns = m_sample.Sample.columns("sample_list_view", species_options=species_options)
     for sample in samples_db:
         samples.append(sample.summary("datatable"))
 

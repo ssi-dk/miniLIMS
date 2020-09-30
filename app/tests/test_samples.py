@@ -53,7 +53,7 @@ def test_submit_samplesheet(client, auth, samplesheet, status, dbentries_test):
         assert (sample_summary["submitted_species"] == 
                 sample_db_summary.submitted_species.name)
         assert (sample_summary["submitter"] == 
-                sample_db_summary.submitter.username)
+                sample_db_summary.submitter.email)
         # Delete _id, it isnt hardcoded
         sample_db_dict = sample_db.to_son().to_dict()
         del sample_db_dict["properties"]["sample_info"]["summary"]["submitted_species"]

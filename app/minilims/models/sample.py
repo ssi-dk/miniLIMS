@@ -79,6 +79,7 @@ class S_summary(EmbeddedMongoModel):
     submitted_species = fields.ReferenceField(Species, required=True)
     submitted_species_name = fields.CharField(required=True)
     emails = fields.ListField(field=fields.EmailField(), blank=True)
+    cost_center = fields.CharField(required=True, blank=True)
 
 
 class S_info(EmbeddedMongoModel):
@@ -172,7 +173,7 @@ class Sample(MongoModel):
             return True
 
     @staticmethod
-    def columns(template):
+    def columns(template, species_options=None):
         from minilims.models.species import Species
         columns = {
             "submit": [
@@ -215,6 +216,72 @@ class Sample(MongoModel):
                     "defaultContent": "",
                     "data": "Comments",
                     "type": "textarea"
+                }
+            ],
+            "sample_list_view": [
+                {
+                    "data": "none",
+                    "type": "hidden"
+                },
+                {
+                    "data": "barcode",
+                    "title": "barcode",
+                    "readonly": "true",
+                    "unique": "true",
+                    "name": "barcode"
+                },
+                {
+                    "data": "name",
+                    "title": "name",
+                    "name": "name"
+                },
+                {
+                    "data": "submitted_on",
+                    "title": "Submission date",
+                    "readonly": "true",
+                    "name": "submitted_on"
+                },
+                {
+                    "data": "priority",
+                    "title": "Priority",
+                    "type": "select",
+                    "options": {"low": "Low", "high": "High"},
+                    "name": "priority"
+                },
+                {
+                    "data": "species",
+                    "title": "species",
+                    "type": "select",
+                    "options": species_options,
+                    "name": "species"
+
+                },
+                {
+                    "data": "group",
+                    "title": "supplying_lab",
+                    "name": "group"
+                },
+                {
+                    "data": "batch",
+                    "title": "batch",
+                    "type": "select",
+                    "multiple": "true",
+                    "readonly": "true",
+                    "name": "batch"
+                },
+                {
+                    "data":"genome_size",
+                    "title": "Genome size",
+                    "readonly": "true",
+                    "name": "genome_size"
+                },
+                {
+                    "data": "archived",
+                    "title": "archived",
+                    "type": "select",
+                    "options": ["true", "false"],
+                    "name": "archived"
+
                 }
             ]
         }

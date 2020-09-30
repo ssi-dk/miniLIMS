@@ -33,10 +33,11 @@ dbentries_success = [
             "sample_info":{
                 "summary": {
                     "name": '1',
-                    "submitter": "test",
+                    "submitter": "test@test.com",
                     "submitted_species_name": "Escherichia coli",
                     "submitted_species": "Escherichia coli",
                     "emails": ["email@test.com"],
+                    "cost_center": None,
                     "group": "TST",
                     "priority": 0,
                     '_cls': 'minilims.models.sample.S_summary'
@@ -54,12 +55,13 @@ dbentries_success = [
             "sample_info":{
                 "summary": {
                     "name": '2',
-                    "submitter": "test",
+                    "submitter": "test@test.com",
                     "submitted_species": "Escherichia coli",
                     "submitted_species_name": "Escherichia coli",
                     "emails": ['email@test.com'],
                     "group": "TST",
                     "priority": 4,
+                    "cost_center": None,
                     '_cls': 'minilims.models.sample.S_summary'
                 },
                 '_cls': 'minilims.models.sample.S_info'
