@@ -145,6 +145,13 @@
             "width": "12px"
           },
           {
+            "title": "order",
+            "render": function (data, type, row) {
+              return row.positions[$("#batchName").val()].index
+            },
+            "visible": false
+          },
+          {
             "title": "Barcode",
             "data": "barcode"
           },
@@ -160,7 +167,7 @@
             "title": "Position",
             "data": "position",
             "render": function(data, type, row) {
-              return row.positions[$("#batchName").val()]
+              return row.positions[$("#batchName").val()].coords
             }
           },
         ],
@@ -168,7 +175,7 @@
           style: 'os',
           selector: 'td:first-child'
         },
-        order: [[4, 'asc']]
+        order: [[1, 'asc']]
       });
       function updateTableSample() {
         var batch_name = $("#batchName").val();

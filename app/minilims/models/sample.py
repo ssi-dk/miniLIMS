@@ -46,7 +46,6 @@ class PositionInPlate(EmbeddedMongoModel):
         if self.plate_type == "96plate":
             rows = ["A", "B", "C", "D", "E", "F", "G", "H"]
             columns = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-            coordinates = ()
             i = self.index
             if index:
                 return (
@@ -56,7 +55,7 @@ class PositionInPlate(EmbeddedMongoModel):
             else:
                 return (
                     rows[i % len(rows)],  # row
-                    i // len(rows)  # column
+                    columns[i // len(rows)]  # column
                 )
         else:
             return (self.index, 0)
@@ -798,11 +797,16 @@ class Sample(MongoModel):
     def summary(self, frmt="dict"):
         batches = []
         positions = {}
+        index = {}
         for b in self.batches:
             if not b.archived:
                 batches.append("{}: {}".format(b.workflow.name, b.batch_name))
                 coord = b.position.get_coordinates()
-                positions["{}: {}".format(b.workflow.name, b.batch_name)] = "".join([str(coord[0]), str(coord[1])])
+                workflow_batch = "{}: {}".format(b.workflow.name, b.batch_name)
+                positions[workflow_batch] = {
+                    "coords": "".join([str(coord[0]), str(coord[1])]),
+                    "index": b.position.index
+                } 
         if len(batches):
             batch = ", ".join(batches)
         else:

@@ -476,8 +476,6 @@ def get_step_finished(stepinstanceid, suggested_step, alternative_step_names, re
 def get_step_details(step_name):
     step = m_step.Step.objects.get({"name": step_name})
 
-    available_samples = step.available_samples()
-
     return {
         'step': step.summary(get_workflows=True),
         'available': {"count": len(step.available_samples())},
