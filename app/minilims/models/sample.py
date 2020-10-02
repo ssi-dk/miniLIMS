@@ -168,7 +168,7 @@ class Sample(MongoModel):
                 value = False
             return Sample._validate_type("boolean", value)
         elif field == "priority":
-            return value in ["high", "low"]
+            return value .lower() in ["high", "low"]
         else:
             return True
 

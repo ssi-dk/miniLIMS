@@ -282,9 +282,9 @@ def get_assign_view(sample_barcodes, workflow_name,
         i += 1
         # Find the latest step that was finished in all samples
         found = False
-        while step_i != 0 and found is False:
+        while step_i != -1 and found is False:
             if workflow.name not in sample.workflows:
-                step_i = 0
+                step_i = -1
                 found = True
             elif steps[step_i].category in sample.workflows[workflow.name]:
                 found = True
