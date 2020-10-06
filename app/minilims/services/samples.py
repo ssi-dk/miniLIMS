@@ -179,7 +179,6 @@ def validate_unassign(jsonbody):
 
 def assign_samples(jsonbody):
     batch_name = jsonbody["batch_name"]
-    index = 0
     workflow = m_workflow.Workflow.objects.get({"name": jsonbody["workflow"]})
     plate_type = jsonbody["plate_type"]
     if jsonbody.get("reorganizing", False):
@@ -219,10 +218,13 @@ def unassign_samples(jsonbody):
 def samples_overview(user):
     samples = []
     if user.has_permission("see_all_samples"):
-        samples_db = m_sample.Sample.objects.raw({})
+        samples_db = m_sample.Sample.objects.raw({"archived": False})
     else:
         group = user.group
-        samples_db = m_sample.Sample.objects.raw({"properties.sample_info.summary.group": group})
+        samples_db = m_sample.Sample.objects.raw({
+            "properties.sample_info.summary.group": group,
+            "archived": False
+        })
     species_options = Species.get_name_list()
     columns = m_sample.Sample.columns("sample_list_view", species_options=species_options)
     for sample in samples_db:
@@ -254,10 +256,15 @@ def archived_samples():
 
 
 def archive_samples(sample_barcodes, archive):
+    print('b', sample_barcodes)
     samples = m_sample.Sample.objects.raw({"barcode": {"$in": sample_barcodes}})
     for sample in samples:
+        print('s', sample.archived)
+        print('a', archive)
         sample.archived = archive
         sample.save()
+        print('s2', sample.archived)
+
     
 
 ## Views data

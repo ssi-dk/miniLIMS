@@ -147,7 +147,8 @@ def unassign_samples_API():
 @bp.route('/archive', methods=["PUT"])
 @permission_required_API("samples_submit")
 def archive_samples_API():
-    if request.json == "archive":
+    print('r', request.json)
+    if request.json.get("archive", "") == "archive":
         archive = True
         flash("Samples archived successfully.", "success")
     else:
