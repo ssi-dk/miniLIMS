@@ -1,4 +1,6 @@
 import datetime
+
+from flask.globals import current_app
 from minilims.models.counter import BarcodeProvider
 
 from flask import url_for
@@ -31,10 +33,7 @@ def submit_samplesheet(samplesheet, user):
     """
     Submit samplesheet to the system.
     """
-    priority_map = {
-        "low": 0,
-        "high": 4
-    }
+    priority_map = {v: k for k, v in current_app.config["PRIORITY"].items()}
     samples = []
     for row in samplesheet:
         # Convert keys to lowercase
@@ -233,6 +232,7 @@ def samples_overview(user):
         "samples": samples,
         "columns": columns,
         "workflows": m_workflow.Workflow.get_workflows(),
+        "priority_mapping": current_app.config["PRIORITY"]
     }
 
 
@@ -508,7 +508,7 @@ def sample_update(jsondata):
 
     # priority
     if jsondata["priority"] != sample.properties.sample_info.summary.priority:
-        sample.update("priority", jsondata["priority"])
+        sample.update("priority", int(jsondata["priority"]))
 
     # archived
     if jsondata["archived"] != sample.archived:

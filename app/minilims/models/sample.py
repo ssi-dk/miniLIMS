@@ -1,10 +1,8 @@
-import sys
 import re
 import datetime
 from flask import current_app
 from pymodm import MongoModel, fields, EmbeddedMongoModel, errors
 
-from pymodm.validators import validator_for_type
 from pymongo.write_concern import WriteConcern
 from pymongo.operations import IndexModel
 from pymongo import TEXT
@@ -168,7 +166,10 @@ class Sample(MongoModel):
                 value = False
             return Sample._validate_type("boolean", value)
         elif field == "priority":
-            return value .lower() in ["high", "low"]
+            try:
+                return 1 <= int(value) <= 4
+            except ValueError:
+                return False
         else:
             return True
 
@@ -202,7 +203,7 @@ class Sample(MongoModel):
                     "data": "Priority",
                     "type": "select",
                     "options": ["low", "high"],
-                    "required": True
+                    "required": True,
                 },
                 {
                     "defaultContent": "",
@@ -228,7 +229,7 @@ class Sample(MongoModel):
                     "title": "barcode",
                     "readonly": "true",
                     "unique": "true",
-                    "name": "barcode"
+                    "name": "barcode",
                 },
                 {
                     "data": "name",
@@ -245,8 +246,8 @@ class Sample(MongoModel):
                     "data": "priority",
                     "title": "Priority",
                     "type": "select",
-                    "options": {"low": "Low", "high": "High"},
-                    "name": "priority"
+                    "options": current_app.config["PRIORITY"],
+                    "name": "priority",
                 },
                 {
                     "data": "species",
@@ -278,7 +279,8 @@ class Sample(MongoModel):
                     "data": "genome_size",
                     "title": "Genome size",
                     "readonly": "true",
-                    "name": "genome_size"
+                    "name": "genome_size",
+                    
                 },
                 {
                     "data": "submission_comments",
@@ -553,11 +555,7 @@ class Sample(MongoModel):
                 new_value = False
             self.archived = new_value
         elif field == "priority":
-            prio = {
-                "high": 4,
-                "low": 0
-            }
-            self.properties.sample_info.summary.priority = prio[new_value]
+            self.properties.sample_info.summary.priority = new_value
         else:
             raise ValueError("Field not valid")
 
@@ -797,7 +795,6 @@ class Sample(MongoModel):
     def summary(self, frmt="dict"):
         batches = []
         positions = {}
-        index = {}
         for b in self.batches:
             if not b.archived:
                 batches.append("{}: {}".format(b.workflow.name, b.batch_name))
@@ -840,7 +837,7 @@ class Sample(MongoModel):
                     "positions": positions,
                     "genome_size": genome_size,
                     "submitted_on": self.submitted_on.date(),
-                    "priority": self.properties.sample_info.summary.priority,
+                    "priority": self.properties.sample_info.summary.priority
             }
         else:
             result = {}

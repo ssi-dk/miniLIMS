@@ -205,6 +205,8 @@
             }
         });
 
+        var priorityMapping = JSON.parse('{{ data.priority_mapping|tojson }}');
+
         var table = $('#samples-table').DataTable({
             data: dataset,
             paging: true,
@@ -224,7 +226,13 @@
                     }
                 },
                 {
-                    targets: 8,
+                    targets: 4,
+                    render: function (data) {
+                        return priorityMapping[data];
+                    }
+                },
+                {
+                    targets: 9,
                     render: function(data) {
                         return data.toLocaleString();
                     }

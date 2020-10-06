@@ -9,16 +9,18 @@ from pymodm.errors import DoesNotExist
 
 ### Validation parameters
 required_columns = ["sampleid", "barcode", "organism"]
-valid_columns = required_columns + ["emails", "priority", "supplydate", 
+valid_columns = required_columns + ["emails", "priority", "supplydate",
                                     "costcenterssi", "comments"]
 species_col = "organism"
+
 
 
 ###
 
 def validate(json, user):
+    priority_map = {v: k for k, v in current_app.config["PRIORITY"].items()}
     errors = {}
-    json, row_errors = validate_rows(json, user.group)
+    json, row_errors = validate_rows(json, user.group, priority_map)
     if row_errors:
         errors["rows"] = row_errors
     general_errors = validate_barcodes(json)
@@ -27,7 +29,7 @@ def validate(json, user):
     return errors
 
 
-def validate_rows(json, group):
+def validate_rows(json, group, priority_map):
     errors = {}
     lowercase_table = []
     for i in range(len(json)):
@@ -40,7 +42,7 @@ def validate_rows(json, group):
         row = lowercase_row
         lowercase_table.append(lowercase_row)
         row_errors = validate_columns(row, original_len)
-        row_errors.extend(validate_fields(row))
+        row_errors.extend(validate_fields(row, priority_map))
         row_errors.extend(validate_species(row))
         row_errors.extend(validate_barcode(row, group))
         if row_errors:
@@ -109,12 +111,16 @@ def validate_barcodes(json):
         return ["Duplicate barcodes: {}".format(dupes)]
     return []
 
-def validate_fields(row):
+
+def validate_fields(row, priority_map):
     """
     Validate all fields in a row using Sample.validate
     """
     errors = []
     for col, value in row.items():
+        # Map priority "name" to "number" i.e. "low" to 1, as defined in config.PRIORITY
+        if col == "priority":
+            value = priority_map[value.lower()]
         if not Sample.validate_field(col, value):
             errors.append("Invalid value for field {} ({})".format(col, value))
     return errors

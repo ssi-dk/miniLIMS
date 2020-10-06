@@ -9,7 +9,7 @@ samplesheets_fail = (
     [{"sampleid":"1","barcode":"ABC","organism":"E. coli","emails":"email@test.com"},{"sampleid":"2","barcode":"ABC","organism":"E. coli","emails":"email@test.com"}],
 )
 
-samplesheets_success = [{"sampleid":"1","barcode":"ABZ","organism":"E. coli", "comments": "asdasd",
+samplesheets_success = [{"sampleid":"1","barcode":"ABZ","organism":"E. coli", "comments": "asdsasd",
                          "emails":"email@test.com","priority": "low", "costcenterssi": "123456"},
                         {"sampleid":"2","barcode":"ABC","organism":"E. coli","priority": "high", 
                          "emails":"email@test.com", "costcenterssi": "123455", "comments": "Septim"}]
@@ -40,9 +40,9 @@ dbentries_success = [
                     "submitted_species_name": "Escherichia coli",
                     "submitted_species": "Escherichia coli",
                     "emails": ["email@test.com"],
-                    "cost_center": None,
+                    "cost_center": "123456",
                     "group": "TST",
-                    "priority": 0,
+                    "priority": 1,
                     "submission_comments": "asdsasd",
                     '_cls': 'minilims.models.sample.S_summary'
                 },
@@ -65,7 +65,7 @@ dbentries_success = [
                     "emails": ['email@test.com'],
                     "group": "TST",
                     "priority": 4,
-                    "cost_center": None,
+                    "cost_center": "123455",
                     "submission_comments": "Septim",
                     '_cls': 'minilims.models.sample.S_summary'
                 },

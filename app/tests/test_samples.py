@@ -62,15 +62,6 @@ def test_submit_samplesheet(client, auth, samplesheet, status, dbentries_test):
         del sample["properties"]["sample_info"]["summary"]["submitter"]
         del sample_db_dict["_id"]
         del sample_db_dict["submitted_on"]
-        # del sample_db_dict["tags"]
-        # del sample_db_dict["workflows"]
-        # del sample_db_dict["batches"]
-        # del sample_db_dict["species"]["_id"]
-        # del sample["_cls"]
-        # del sample["properties"]["_cls"]
-        # del sample["properties"]["sample_info"]["_cls"]
-        # del sample["properties"]["sample_info"]["summary"]["_cls"]
-        # Check whole dict
         assert sample == sample_db_dict
 
 @pytest.mark.parametrize(('samplesheet', 'status', 'assign_data'),(
@@ -146,10 +137,10 @@ def test_unassign_samples(client, auth):
 
 
 @pytest.mark.parametrize(('json_body', 'expected_response'),(
-    ({"barcode": "123", "species": "1233", "group": "group12", "name": "testsample1@", "archived": "true", "submitted_on": None, "priority": "low", "batch": "Unassigned", "genome_size": 5000000},
+    ({"barcode": "123", "species": "1233", "group": "group12", "name": "testsample1@", "archived": "true", "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000},
     {'errors': {'wrong_barcode': ['Wrong barcode.'], 'wrong_species': ["Species doesn't match species in database."], 'validate_field_name': ['Invalid field value.']}}),
-    ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true",  "submitted_on": None, "priority": "low", "batch": "Unassigned", "genome_size": 5000000},
-    {"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true", "submitted_on": None, "priority": "low", "batch": "Unassigned", "genome_size": 5000000})
+    ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true",  "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000},
+    {"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true", "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000})
 ))
 def test_sample_update_from_web(client, auth, json_body, expected_response):
     # setup

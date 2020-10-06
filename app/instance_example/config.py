@@ -1,6 +1,12 @@
 SECRET_KEY = "dev"
 LIMIT_SUBMITTED_BARCODES_TO_PROVIDED = False
 
+#Sample priority
+PRIORITY= {
+    "1": "low",
+    "4": "high"
+}
+
 # Application (client) ID of app registration
 CLIENT_ID = "c163dd4a-0082-4916-8137-c638a80195af"
 
