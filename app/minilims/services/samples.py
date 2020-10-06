@@ -118,7 +118,7 @@ def validate_assign(jsonbody):
                         already_assigned.append(s_b)
                 if "step_name" in jsonbody:
                     if (prev_step != "root" and
-                        not prev_step in sample.workflows[jsonbody["workflow"]]):
+                        prev_step not in sample.workflows[jsonbody["workflow"]]):
                         errors_step.append(s_b)
         if len(wrong_samples) > 0:
             e_b = "Missing samples: {}".format(",".join(wrong_samples))
@@ -241,7 +241,10 @@ def archived_samples():
         "columns": [
             {"name": "barcode"},
             {"name": "species"},
-            {"name": "name"},
+            {
+                "name": "name",
+                "title": "SampleID"
+            },
             {"name": "group"},
             {"name": "batch"},
             {"name": "archived"},

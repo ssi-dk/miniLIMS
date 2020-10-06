@@ -233,7 +233,7 @@ class Sample(MongoModel):
                 },
                 {
                     "data": "name",
-                    "title": "name",
+                    "title": "SampleID",
                     "name": "name"
                 },
                 {
@@ -464,10 +464,10 @@ class Sample(MongoModel):
                             finished = False
                         step_entries.append(
                             {
-                            "step_d_name": step_data["d_name"],
-                            "step_name": step_data["name"],
-                            "count": 0, 
-                            "finished": finished
+                                "step_d_name": step_data["d_name"],
+                                "step_name": step_data["name"],
+                                "count": 0,
+                                "finished": finished
                             })
                 batch["steps"] = step_entries
                 batch["progress"] = steps_progress
