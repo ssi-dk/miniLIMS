@@ -58,11 +58,32 @@ def init_commands(app):
 @with_appcontext
 def create_demo_users_command():
     """Create demo users in db."""
-    from minilims.services.auth import register_user
-    register_user("supplying_lab@test.com", "supplying lab", roles=["supplying_lab_user"], group="MPV")
-    register_user("supplying_lab_FBI@test.com", "supplying lab FBI", roles=["supplying_lab_user"], group="FBI")
-    register_user("lab_manager@test.com", "lab manager", ["NGS_lab_manager"], group="MPV")
-    register_user("lab_technician@test.com", "lab technician", ["lab_technician"], group="MPV")
+    from minilims.services.auth import register
+    lims_s.init_user_roles()
+    register({
+        "mail": "supplying_lab@test.com",
+        "password": "supplying lab",
+        "roles": ["supplying_lab_user"],
+        "group": "ABC"
+    })
+    register({
+        "mail": "supplying_lab_DEF@test.com",
+        "password": "supplying lab DEF",
+        "roles": ["supplying_lab_user"],
+        "group": "DEF"
+    })
+    register({
+        "mail": "lab_manager@test.com",
+        "password": "lab manager",
+        "roles": ["NGS_lab_manager"],
+        "group": "ABC"
+    })
+    register({
+        "mail": "lab_technician@test.com",
+        "password": "lab technician",
+        "roles": ["lab_technician"],
+        "group": "ABC"
+    })
     click.echo('Demo users created.')
 
 @click.command('test_dev')

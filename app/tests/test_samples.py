@@ -136,28 +136,32 @@ def test_unassign_samples(client, auth):
         assert sample_db.batches[0].archived is True
 
 
-@pytest.mark.parametrize(('json_body', 'expected_response'),(
+@pytest.mark.parametrize(('json_body', 'expected_response', 'updater'),(
     ({"barcode": "123", "species": "1233", "group": "group12", "name": "testsample1@", "archived": "true", "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000},
-    {'errors': {'wrong_barcode': ['Wrong barcode.'], 'wrong_species': ["Species doesn't match species in database."], 'validate_field_name': ['Invalid field value.']}}),
+    {'errors': {'wrong_barcode': ['Wrong barcode.'], 'wrong_species': ["Species doesn't match species in database."], 'validate_field_name': ['Invalid field value.']}},
+    ("test@test.com", "test")),
     ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true",  "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000},
-    {"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true", "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000})
+    {"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true", "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000},
+    ("test@test.com", "test")),
+    ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true",  "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000},
+    {'errors': {'authorization': ["Your user doesn't have permission to edit this sample. Please contact an admin to request changes."]}},
+    ("supplying_lab@test.com", "supplying lab"))
 ))
-def test_sample_update_from_web(client, auth, json_body, expected_response):
+def test_sample_update_from_web(client, auth, json_body, expected_response, updater):
     # setup
     helper = Helper(client)
     helper.reset_db()
 
-    # s_lims.import_steps([dt.steps[0][0]])
-    # s_lims.import_workflow(dt.workflows[0])
-
-    # workflow_name = dt.workflows[0]['name']
+    #
 
     auth.login()
     helper.submit_samples(dt.samplesheets_success)
 
-    # helper.assign_samples(sample_barcodes, workflow_name)
 
-    # Test
+    #Test
+
+    auth.logout()
+    auth.login(updater[0], updater[1])
 
     response = client.post(
         '/samples/data-source/update',
@@ -166,4 +170,39 @@ def test_sample_update_from_web(client, auth, json_body, expected_response):
     )
     print(response.json)
     assert response.json == expected_response
-    
+
+
+
+def test_assign_and_update(client, auth):
+    # Test that user cannot edit sample after being assigned
+
+    # Setup
+    helper = Helper(client)
+    helper.reset_db()
+
+    s_lims.import_steps([dt.steps[0][0]])
+    s_lims.import_workflow(dt.workflows[0])
+
+    workflow_name = dt.workflows[0]['name']
+
+    # upload samples
+
+    auth.login("supplying_lab@test.com", "supplying lab")
+    helper.submit_samples(dt.samplesheets_success)
+    auth.logout()
+    auth.login()
+        
+    helper.assign_samples(dt.barcodes[0], workflow_name, "batch1")
+
+    auth.logout()
+    auth.login("supplying_lab@test.com", "supplying lab")
+    #Test
+
+    json_body = {"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true",  "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000}
+
+    response = client.post(
+        '/samples/data-source/update',
+        data=json.dumps(json_body),
+        content_type="application/json;charset=UTF-8",
+    )
+    assert response.json == {'errors': {'sample_assigned': ['This sample has already been assigned. Please contact an admin to request changes.']}}

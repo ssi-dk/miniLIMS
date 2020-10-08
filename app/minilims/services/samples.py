@@ -3,7 +3,7 @@ import datetime
 from flask.globals import current_app
 from minilims.models.counter import BarcodeProvider
 
-from flask import url_for
+from flask import url_for, g
 
 import minilims.utils.samplesheet_validation as samplesheet_validation
 import minilims.models.sample as m_sample
@@ -256,14 +256,10 @@ def archived_samples():
 
 
 def archive_samples(sample_barcodes, archive):
-    print('b', sample_barcodes)
     samples = m_sample.Sample.objects.raw({"barcode": {"$in": sample_barcodes}})
     for sample in samples:
-        print('s', sample.archived)
-        print('a', archive)
         sample.archived = archive
         sample.save()
-        print('s2', sample.archived)
 
     
 
@@ -464,6 +460,28 @@ def data_source(ra, user):
 def validate_sample_update(jsonbody):
     errors = {}
 
+    sample = None
+    # Barcode
+    if "barcode" in jsonbody:
+        try:
+            sample = m_sample.Sample.objects.get({"barcode" : jsonbody["barcode"]})
+        except pymodm.errors.DoesNotExist:
+            errors["wrong_barcode"] = ["Wrong barcode."]
+
+
+    #Check permission
+
+    if sample is not None and not g.user.has_permission("samples_edit_all"):
+        if not (g.user.has_permission("samples_edit_own") and 
+                g.user.group == sample.properties.sample_info.summary.group):
+            return {
+                "authorization": ["Your user doesn't have permission to edit this sample. Please contact an admin to request changes."]
+            }
+        elif len(sample.workflows.keys()) != 0:
+            return {
+                "sample_assigned": ["This sample has already been assigned. Please contact an admin to request changes."]
+            }
+
 
     # Missing columns
     columns = ["barcode", "species", "group", "name", "archived",
@@ -476,13 +494,7 @@ def validate_sample_update(jsonbody):
     if len(missing_col):
         errors["missing_column"] = missing_col
 
-    # Barcode
-    if "barcode" in jsonbody:
-        sample = None
-        try:
-            sample = m_sample.Sample.objects.get({"barcode" : jsonbody["barcode"]})
-        except pymodm.errors.DoesNotExist:
-            errors["wrong_barcode"] = ["Wrong barcode."]
+
 
     
     # Species

@@ -117,9 +117,12 @@ def load_logged_in_user():
 @bp.route('/logout')
 def logout():
     session.clear()
-    return redirect(  # Also logout from your tenant's web session, not needed if not oauth
-        current_app.config["AUTHORITY"] + "/oauth2/v2.0/logout" +
-        "?post_logout_redirect_uri=" + url_for("auth.login", _external=True))
+    if current_app.config["LOGIN_TYPE"] == "MICROSOFT_AUTH":
+        return redirect(  # Also logout from your tenant's web session, not needed if not oauth
+            current_app.config["AUTHORITY"] + "/oauth2/v2.0/logout" +
+            "?post_logout_redirect_uri=" + url_for("auth.login", _external=True))
+    else:
+        return redirect("/")
 
 @bp.route('/u/<email>/addrole/<rolename>', methods=["POST"])
 def add_role_to_user(email, rolename):

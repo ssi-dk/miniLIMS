@@ -11,6 +11,7 @@ from minilims.utils import expect
 import json
 from minilims.utils.steploader import Steploader
 import pymodm.errors
+import pymongo.errors
 
 
 ## Workflow set up
@@ -73,12 +74,14 @@ def init_user_roles():
             jsont = json.loads(conf_io.read())
             for role, permissions in jsont.items():
                 role_o = m_role.Role(name=role, permissions=permissions)
-                role_o.save()
-
+                try:
+                    role_o.save()
+                except pymongo.errors.DuplicateKeyError:
+                    print(f"Role {role} already exists in db. Skipped.")
 
 def init_config():
     init_workflows()
-    init_user_roles()
+    #init_user_roles()
 
 ## Data for templates
 

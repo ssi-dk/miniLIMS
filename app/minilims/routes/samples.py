@@ -43,10 +43,11 @@ def data_source():
     return jsonify(data)
 
 @bp.route('/data-source/update', methods=["POST"])
-@permission_required_API("samples_edit_all")
+#@permission_required_API("samples_edit_all")
 def update():
     # Update a row
     data = request.json
+    # Also checks permissions
     errors = sample_service.validate_sample_update(data)
     if len(errors) == 0:
         row = sample_service.sample_update(data)
