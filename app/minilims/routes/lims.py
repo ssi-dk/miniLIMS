@@ -33,7 +33,7 @@ def batch_overview():
 
 
 @bp.route('/steps/<step_name>')
-@permission_required_API("workflows_see_results")
+@permission_required("workflows_see_results")
 def step_overview(step_name):
     data = lims_service.get_step_overview(step_name)
     return render_template('lims/step.html', data=data)

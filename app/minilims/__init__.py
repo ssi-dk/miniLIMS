@@ -39,4 +39,7 @@ def create_app(config=None):
     from minilims.routes import samples
     app.register_blueprint(samples.bp)
 
+    from minilims.routes import tags
+    app.register_blueprint(tags.bp)
+
     return app

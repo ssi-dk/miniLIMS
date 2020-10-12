@@ -2,15 +2,12 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for,
     jsonify
 )
-from werkzeug.exceptions import abort
-from flask import current_app
 from pymodm import errors
 import minilims.services.samples as sample_service
 import minilims.models.sample as sample_m
 from minilims.routes.auth import login_required, permission_required, permission_required_API
 from minilims.models.counter import BarcodeProvider
 
-import minilims.services.db
 
 bp = Blueprint('samples', __name__, url_prefix='/samples')
 

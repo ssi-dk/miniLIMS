@@ -4,6 +4,7 @@ from bson.objectid import ObjectId
 
 import minilims.services.lims as s_lims
 from minilims.models.step import Step
+from minilims.models.tag import Tag
 from minilims.models.sample import Sample
 from minilims.models.workflow import Workflow
 from minilims.models.step_instance import Step_instance
@@ -24,6 +25,7 @@ class Helper:
         Step_instance.objects.delete()
         Sample.objects.delete()
         Workflow.objects.delete()
+        Tag.objects.delete()
 
     def submit_samples(self, samplesheet):
         response = self.client.post(

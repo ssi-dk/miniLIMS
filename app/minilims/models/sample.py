@@ -9,6 +9,7 @@ from pymongo import TEXT
 
 from minilims.models.user import User
 from minilims.models.step import Step
+from minilims.models.tag import Tag
 from minilims.models.species import Species
 from minilims.models.workflow import Workflow
 import minilims.errors
@@ -102,7 +103,7 @@ class WorkflowResults(EmbeddedMongoModel):
 
 class Sample(MongoModel):
     barcode = fields.CharField(required=True)
-    tags = fields.ListField(fields.CharField())
+    tags = fields.ListField(fields.ReferenceField(Tag), blank=True)
     properties = fields.EmbeddedDocumentField(S_properties, required=True)
     batches = fields.EmbeddedDocumentListField(Batch)
     workflows = MapField(MapField(fields.EmbeddedDocumentListField(WorkflowResults)))
@@ -947,3 +948,13 @@ class Sample(MongoModel):
             },
             "batches": batches
         }
+
+    def assign_tag(self, tag):
+        if tag not in self.tags:
+            self.tags.append(tag)
+        self.save()
+
+    def unassign_tag(self, tag):
+        if tag in self.tags:
+            self.tags.remove(tag)
+        self.save()
