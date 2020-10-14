@@ -6,18 +6,21 @@ from minilims.utils import expect
 
 def validate_and_add(jsonbody):
     errors = {}
-    missing = expect(jsonbody, ["value", "style"])
+    missing = expect(jsonbody, ["value"])
     if missing:
         errors["missing_property"] = f"Missing properties: {missing}"
     if len(errors):
         return errors
     #Validation
-    
-    Tag(
-        value=jsonbody["value"],
-        style=jsonbody["style"],
-    ).save()
-
+    if "style" in jsonbody:
+        Tag(
+            value=jsonbody["value"],
+            style=jsonbody["style"],
+        ).save()
+    else:
+        Tag(
+            value=jsonbody["value"],
+        ).save()
     return errors
 
 def validate_and_delete(tagvalue):

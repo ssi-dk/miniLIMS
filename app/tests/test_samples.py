@@ -137,13 +137,13 @@ def test_unassign_samples(client, auth):
 
 
 @pytest.mark.parametrize(('json_body', 'expected_response', 'updater'),(
-    ({"barcode": "123", "species": "1233", "group": "group12", "name": "testsample1@", "archived": "true", "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000},
-    {'errors': {'wrong_barcode': ['Wrong barcode.'], 'wrong_species': ["Species doesn't match species in database."], 'validate_field_name': ['Invalid field value.']}},
+    ({"barcode": "123", "species": "1233", "group": "group12", "name": "testsample1@", "archived": "true", "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000, "tags": [], "costcenter": "1", "submission_comments": ""},
+    {'errors': {'wrong_barcode': ['Wrong barcode.'], 'wrong_species': ["Species doesn't match species in database."], 'validate_field_name': ['Invalid field value (testsample1@) for column name.']}},
     ("test@test.com", "test")),
-    ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true",  "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000},
-    {"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true", "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000},
+    ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true",  "submitted_on": datetime.date.today().strftime("%Y-%m-%d"), "priority": "1", "batch": "Unassigned", "genome_size": 4900000, "tags": ["test1"], "costcenter": "1","submission_comments": "Septim"},
+    {"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": True, "submitted_on": datetime.date.today().strftime("%Y-%m-%d"), "priority": 1, "batch": "Unassigned", "genome_size": 4900000, "tags": ["test1"], "costcenter": "1", "submission_comments": "Septim", 'none': "", 'positions': {}, "batch_json": []},
     ("test@test.com", "test")),
-    ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true",  "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000},
+    ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "true",  "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000, "tags": [], "costcenter": "1", "submission_comments": ""},
     {'errors': {'authorization': ["Your user doesn't have permission to edit this sample. Please contact an admin to request changes."]}},
     ("supplying_lab@test.com", "supplying lab"))
 ))
@@ -156,6 +156,21 @@ def test_sample_update_from_web(client, auth, json_body, expected_response, upda
 
     auth.login()
     helper.submit_samples(dt.samplesheets_success)
+
+    # Submit tag for tag test
+
+    tag = {
+        "value": "test1",
+        "style": "secondary"
+    }
+    response = client.post(
+        "/tags/",
+        data=json.dumps(tag),
+        content_type="application/json;charset=UTF-8",
+        follow_redirects=True
+    )
+    assert response.json["status"] == "OK"
+
 
 
     #Test

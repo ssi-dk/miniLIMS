@@ -10,13 +10,13 @@ samplesheets_fail = (
 )
 
 samplesheets_success = [{"sampleid":"1","barcode":"ABZ","organism":"E. coli", "comments": "asdsasd",
-                         "emails":"email@test.com","priority": "low", "costcenterssi": "123456"},
+                         "emails":"email@test.com","priority": "low", "costcenter": "123456"},
                         {"sampleid":"2","barcode":"ABC","organism":"E. coli","priority": "high", 
-                         "emails":"email@test.com", "costcenterssi": "123455", "comments": "Septim"}]
+                         "emails":"email@test.com", "costcenter": "123455", "comments": "Septim"}]
 
 errors = (
     {"errors": {"rows": {'1': ["Missing required column(s): ['organism']", 'Invalid value for field emails (emailtest.com)']}}},
-    {"errors": {"rows": {'1': ['Invalid value for field sampleid (5@)', "Species E. coli_ not in database. Contact admin."]}}},
+    {"errors": {"rows": {'1': ['Invalid value for field sampleid (5@)','Invalid value for field organism (E. coli_)', "Species E. coli_ not in database. Contact admin."]}}},
     {"errors": {"rows": {'1': ["Missing required column(s): ['barcode']"]}}},
     {"errors": {"general": ["Duplicate barcodes: ['ABC']"]}},
     {"errors":{}}
@@ -40,7 +40,7 @@ dbentries_success = [
                     "submitted_species_name": "Escherichia coli",
                     "submitted_species": "Escherichia coli",
                     "emails": ["email@test.com"],
-                    "cost_center": "123456",
+                    "costcenter": "123456",
                     "group": "TST",
                     "priority": 1,
                     "submission_comments": "asdsasd",
@@ -65,7 +65,7 @@ dbentries_success = [
                     "emails": ['email@test.com'],
                     "group": "TST",
                     "priority": 4,
-                    "cost_center": "123455",
+                    "costcenter": "123455",
                     "submission_comments": "Septim",
                     '_cls': 'minilims.models.sample.S_summary'
                 },

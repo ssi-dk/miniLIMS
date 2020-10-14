@@ -7,6 +7,7 @@ from flask import url_for, g
 
 import minilims.utils.samplesheet_validation as samplesheet_validation
 import minilims.models.sample as m_sample
+from minilims.models.tag import Tag
 import minilims.models.workflow as m_workflow
 from minilims.models.species import Species
 import pymodm.errors
@@ -53,7 +54,7 @@ def submit_samplesheet(samplesheet, user):
             submitted_species=species,
             submitted_species_name=species.name,
             emails=emails,
-            cost_center=row.get("costcenterssi"),
+            costcenter=row.get("costcenter"),
             submission_comments=row.get("comments")
         )
         summary.clean_fields()
@@ -234,7 +235,8 @@ def samples_overview(user):
         "samples": samples,
         "columns": columns,
         "workflows": m_workflow.Workflow.get_workflows(),
-        "priority_mapping": current_app.config["PRIORITY"]
+        "priority_mapping": current_app.config["PRIORITY"],
+        "tag_styling": Tag.get_styling()
     }
 
 
@@ -482,17 +484,19 @@ def validate_sample_update(jsonbody):
                 "sample_assigned": ["This sample has already been assigned. Please contact an admin to request changes."]
             }
 
+    columns = m_sample.Sample.columns("sample_list_view")
 
-    # Missing columns
-    columns = ["barcode", "species", "group", "name", "archived",
-               "submitted_on", "priority", "batch", "genome_size"]
+    # # Missing columns
+    # columns = ["barcode", "species", "group", "name", "archived",
+    #            "submitted_on", "priority", "batch", "genome_size"]
 
     missing_col = []
     for column in columns:
-        if column not in jsonbody:
-            missing_col.append("Missing column {}".format(column))
+        if column["data"] != "none" and column["data"] not in jsonbody:
+            missing_col.append("Missing column {}".format(column["data"]))
     if len(missing_col):
         errors["missing_column"] = missing_col
+        return errors
 
 
 
@@ -504,9 +508,13 @@ def validate_sample_update(jsonbody):
         except pymodm.errors.DoesNotExist:
             errors["wrong_species"] = ["Species doesn't match species in database."]
 
-    for col in jsonbody:
-        if not m_sample.Sample.validate_field(col, jsonbody[col]):
-            errors["validate_field_{}".format(col)] = ["Invalid field value."]
+    for col in columns:
+        if col.get("readonly") != "true" and col["data"] != "none":
+            colname = col["data"]
+            if not m_sample.Sample.validate_field(colname, jsonbody[colname]):
+                errors["validate_field_{}".format(colname)] = [
+                    f"Invalid field value ({jsonbody[colname]}) for column {colname}."
+                ]
 
     return errors
 
@@ -533,12 +541,18 @@ def sample_update(jsondata):
         sample.update("priority", int(jsondata["priority"]))
 
     # archived
-    if jsondata["archived"] != sample.archived:
+    if jsondata["archived"] != str(sample.archived):
         sample.update("archived", jsondata["archived"])
+
+    if jsondata["costcenter"] != sample.properties.sample_info.summary.costcenter:
+        sample.update("costcenter", jsondata["costcenter"])
+
+    if jsondata["tags"] != sample.tags:
+        sample.update("tags", jsondata["tags"])
 
     sample.save()
 
-    return jsondata
+    return sample.summary("datatable")
 
 
 def get_sample_details(sample_barcode, user):

@@ -10,9 +10,10 @@ from pymodm.errors import DoesNotExist
 ### Validation parameters
 required_columns = ["sampleid", "barcode", "organism"]
 valid_columns = required_columns + ["emails", "priority", "supplydate",
-                                    "costcenterssi", "comments"]
+                                    "costcenter", "comments"]
 species_col = "organism"
 
+dont_validate_columns = ["supplydate"] #Not stored
 
 
 ###
@@ -121,6 +122,6 @@ def validate_fields(row, priority_map):
         # Map priority "name" to "number" i.e. "low" to 1, as defined in config.PRIORITY
         if col == "priority":
             value = priority_map[value.lower()]
-        if not Sample.validate_field(col, value):
+        if col not in dont_validate_columns and not Sample.validate_field(col, value):
             errors.append("Invalid value for field {} ({})".format(col, value))
     return errors

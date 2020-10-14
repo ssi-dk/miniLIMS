@@ -12,6 +12,9 @@
     .modalfront {
         z-index: 1150;
     }
+    td.dt-tag-column .badge{
+        font-size: 85%;
+    }
 </style>
 {% endblock %}
 
@@ -206,6 +209,7 @@
         });
 
         var priorityMapping = JSON.parse('{{ data.priority_mapping|tojson }}');
+        var tagStyling = JSON.parse('{{ data.tag_styling|tojson }}');
 
         var table = $('#samples-table').DataTable({
             data: dataset,
@@ -226,13 +230,24 @@
                     }
                 },
                 {
-                    targets: 4,
+                    targets: 2,
+                    className: "dt-tag-column",
+                    render: function (data) {
+                        out = "";
+                        data.forEach(function (v) {
+                            out += '<span class="mr-1 badge badge-' + tagStyling[v] + '">' + v + '</span>';
+                        })
+                        return out
+                    }
+                },
+                {
+                    targets: 5,
                     render: function (data) {
                         return priorityMapping[data];
                     }
                 },
                 {
-                    targets: 9,
+                    targets: 10,
                     render: function(data) {
                         return data.toLocaleString();
                     }

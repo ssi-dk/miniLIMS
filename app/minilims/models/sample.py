@@ -77,7 +77,7 @@ class S_summary(EmbeddedMongoModel):
     submitted_species = fields.ReferenceField(Species, required=True)
     submitted_species_name = fields.CharField(required=True)
     emails = fields.ListField(field=fields.EmailField(), blank=True)
-    cost_center = fields.CharField(required=True, blank=True)
+    costcenter = fields.CharField(required=True, blank=True)
     submission_comments = fields.CharField(required=True, blank=True)
 
 
@@ -137,6 +137,9 @@ class Sample(MongoModel):
         elif type_ == "alphanum":
             value = str(value)
             return not bool(re.compile(r'[^A-Za-z0-9_\-]').search(value))
+        elif type_ == "species":
+            value = str(value)
+            return not bool(re.compile(r'[^A-Za-z\. ]').search(value))
         elif type_ == "barcode":
             value = str(value)
             return not bool(re.compile(r'[^A-Za-z0-9_\-]').search(value))
@@ -161,18 +164,25 @@ class Sample(MongoModel):
         elif field == "emails":
             return Sample._validate_type("email", value)
         elif field == "archived":
-            if value == "true":
+            if value == "True":
                 value = True
-            elif value == "false":
+            elif value == "False":
                 value = False
             return Sample._validate_type("boolean", value)
+        elif field == "organism":
+            return Sample._validate_type("species", value)
         elif field == "priority":
             try:
                 return 1 <= int(value) <= 4
             except ValueError:
                 return False
-        else:
+        elif field == "tags":
+            return Tag.validate_field(value)
+        elif field in ["comments", "costcenter", "submission_comments"]:
+            # Always valid
             return True
+        else:
+            return False
 
     @staticmethod
     def columns(template, species_options=None):
@@ -212,7 +222,7 @@ class Sample(MongoModel):
                 },
                 {
                     "defaultContent": "",
-                    "data": "CostcenterSSI"
+                    "data": "Costcenter"
                 },
                 {
                     "defaultContent": "",
@@ -233,15 +243,23 @@ class Sample(MongoModel):
                     "name": "barcode",
                 },
                 {
-                    "data": "name",
-                    "title": "SampleID",
-                    "name": "name"
+                    "data": "tags",
+                    "title": "tags",
+                    "type": "select",
+                    "multiple": "true",
+                    "options": [str(x.pk) for x in Tag.objects.project({"_id":1}).all()],
+                    "name": "tags"
                 },
                 {
                     "data": "submitted_on",
                     "title": "Submission date",
                     "readonly": "true",
                     "name": "submitted_on"
+                },
+                {
+                    "data": "name",
+                    "title": "SampleID",
+                    "name": "name"
                 },
                 {
                     "data": "priority",
@@ -264,9 +282,9 @@ class Sample(MongoModel):
                     "name": "group"
                 },
                 {
-                    "data": "cost_center",
+                    "data": "costcenter",
                     "title": "Cost Center",
-                    "name": "cost_center"
+                    "name": "costcenter"
                 },
                 {
                     "data": "batch",
@@ -293,7 +311,7 @@ class Sample(MongoModel):
                     "data": "archived",
                     "title": "archived",
                     "type": "select",
-                    "options": ["true", "false"],
+                    "options": ["True", "False"],
                     "name": "archived"
 
                 }
@@ -542,6 +560,7 @@ class Sample(MongoModel):
         return plate_view
 
     def update(self, field, new_value):
+        print(field)
         if field == "species":
             self.properties.sample_info.summary.submitted_species = new_value
             self.properties.sample_info.summary.submitted_species_name = new_value.name
@@ -550,13 +569,18 @@ class Sample(MongoModel):
         elif field == "name":
             self.properties.sample_info.summary.name = new_value
         elif field == "archived":
-            if new_value == "true":
+            if new_value.lower() == "true":
                 new_value = True
-            elif new_value == "false":
+            else:
                 new_value = False
             self.archived = new_value
         elif field == "priority":
             self.properties.sample_info.summary.priority = new_value
+        elif field == "costcenter":
+            self.properties.sample_info.summary.costcenter = new_value
+        elif field == "tags":
+            tags = Tag.objects.raw({"_id": {"$in": new_value}})
+            self.tags = tags
         else:
             raise ValueError("Field not valid")
 
@@ -820,20 +844,21 @@ class Sample(MongoModel):
                     "group": self.properties.sample_info.summary.group,
                     "species": self.properties.sample_info.summary.submitted_species.name,
                     "batch": batch,
-                    "archived": self.archived,
+                    "archived": str(self.archived),
                     "submitted_on": self.submitted_on
                 }
         elif frmt == "datatable":
             result = {
                     "none": "",  # For checkbox
+                    "tags": [x.pk for x in self.tags],
                     "barcode": self.barcode,
                     "name": self.properties.sample_info.summary.name,
                     "group": self.properties.sample_info.summary.group,
                     "species": self.properties.sample_info.summary.submitted_species.name,
                     "batch": batch,
                     "submission_comments": self.properties.sample_info.summary.submission_comments,
-                    "cost_center": self.properties.sample_info.summary.cost_center,
-                    "archived": self.archived,
+                    "costcenter": self.properties.sample_info.summary.costcenter,
+                    "archived": str(self.archived),
                     "batch_json": batches,
                     "positions": positions,
                     "genome_size": genome_size,
@@ -937,6 +962,7 @@ class Sample(MongoModel):
 
         return {
             "barcode": self.barcode,
+            "tags": [x.pk for x in self.tags],
             "properties": {
                 "group": self.properties.sample_info.summary.group,
                 "name": self.properties.sample_info.summary.name,

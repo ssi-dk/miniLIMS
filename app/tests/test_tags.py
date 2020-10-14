@@ -19,7 +19,7 @@ def test_create_and_delete_tag(client, auth):
 
     tag = {
         "value": tag_val,
-        "style": "#FF0000"
+        "style": "secondary"
     }
     response = client.post(
         "/tags/",
@@ -64,7 +64,7 @@ def test_assign_unassign_tag(client, auth):
 
     tag = {
         "value": tag_val,
-        "style": "#FF0000"
+        "style": "secondary"
     }
     response = client.post(
         "/tags/",

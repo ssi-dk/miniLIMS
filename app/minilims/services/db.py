@@ -1,7 +1,4 @@
-import os, sys
-from pymongo import MongoClient
 from flask_pymongo import PyMongo
-import gridfs
 from pymodm.connection import connect
 
 import click
@@ -97,6 +94,7 @@ def test_dev(stop_at_step):
     import tests.data_test as dt
     from minilims.models.step import Step
     from minilims.models.step_instance import Step_instance
+    import minilims.services.tags as s_tags
     try:
         import tests.data_test_real as dtr
         real_test = True
@@ -125,6 +123,13 @@ def test_dev(stop_at_step):
     auth = AuthActions(client)
     auth.login()
     helper.submit_samples(samplesheet)
+
+    #Add tag for testing
+    s_tags.validate_and_add({"value": "testtag"})
+    s_tags.validate_and_add({"value": "testtag2", "style": "danger"})
+    s_tags.validate_and_assign_to_sample("testtag", {"sample_barcodes": [sample_barcodes[0]]})
+    s_tags.validate_and_assign_to_sample("testtag2", {"sample_barcodes": [sample_barcodes[0]]})
+
     batch_name = "test_batch"
 
     helper.assign_samples(sample_barcodes, workflow["name"], batch_name)
