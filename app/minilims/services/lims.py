@@ -7,6 +7,7 @@ import minilims.models.step as m_step
 import minilims.models.step_instance as m_step_i
 import minilims.models.sample as m_sample
 import minilims.models.role as m_role
+from minilims.models.tag import Tag
 from minilims.utils import expect
 import json
 from minilims.utils.steploader import Steploader
@@ -52,6 +53,25 @@ def import_workflow(workflow_o):
     workflow_o.denormalize_steps()
     workflow_o.save()
 
+def import_tags():
+    """
+    Imports tags from instance path tags.json
+    """
+    import os.path
+
+    file_path = os.path.join(current_app.instance_path, "tags.json")
+    if os.path.exists(file_path):
+        with open(file_path) as conf_io:
+            jsont = json.loads(conf_io.read())
+            for tag in jsont:
+                tag_data = {k: v for k, v in tag.items() if k in ["value", "style", "description"]}
+                tag_o = Tag(**tag_data)
+                try:
+                    tag_o.save()
+                except pymongo.errors.DuplicateKeyError:
+                    tag_val = tag["value"]
+                    print(f"Tag {tag_val} already exists in db. Skipped.")
+
 def init_workflows():
     import os.path
     import_all_steps()
@@ -81,7 +101,8 @@ def init_user_roles():
 
 def init_config():
     init_workflows()
-    #init_user_roles()
+    init_user_roles()
+    import_tags()
 
 ## Data for templates
 

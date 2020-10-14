@@ -209,13 +209,16 @@
         });
 
         var priorityMapping = JSON.parse('{{ data.priority_mapping|tojson }}');
-        var tagStyling = JSON.parse('{{ data.tag_styling|tojson }}');
+        var tagDisplay = JSON.parse('{{ data.tag_display|tojson }}');
 
         var table = $('#samples-table').DataTable({
             data: dataset,
             paging: true,
             pageLength: 100,
             columns: columns,
+            drawCallback: function (settings) {
+                $('[data-toggle="tooltip"]').tooltip()
+            },
             columnDefs: [
                 {
                     orderable: false,
@@ -235,7 +238,13 @@
                     render: function (data) {
                         out = "";
                         data.forEach(function (v) {
-                            out += '<span class="mr-1 badge badge-' + tagStyling[v] + '">' + v + '</span>';
+                            if (tagDisplay[v]["desc"] != undefined) {
+                                out += ('<span data-toggle="tooltip" class="mr-1 badge badge-' + tagDisplay[v]["style"] + 
+                                        '" title="' + tagDisplay[v]["desc"] + '">' + v + '</span>');
+                            } else {
+                                out += ('<span data-toggle="tooltip" class="mr-1 badge badge-' + 
+                                        tagDisplay[v]["style"] + '">' + v + '</span>');
+                            }
                         })
                         return out
                     }

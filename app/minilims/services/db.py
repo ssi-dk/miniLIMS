@@ -38,7 +38,6 @@ def clear_db_command():
 @with_appcontext
 def import_config_command():
     """Initialize with workflows and user permissions from config."""
-    clear_db(current_app)
     lims_s.init_config()
     click.echo('Imported config from {}.'.format(current_app.instance_path))
 
@@ -125,8 +124,8 @@ def test_dev(stop_at_step):
     helper.submit_samples(samplesheet)
 
     #Add tag for testing
-    s_tags.validate_and_add({"value": "testtag"})
-    s_tags.validate_and_add({"value": "testtag2", "style": "danger"})
+    s_tags.validate_and_add({"value": "testtag", "description": "Hello world"})
+    s_tags.validate_and_add({"value": "testtag2", "style": "danger", "description": "This is a longer description"})
     s_tags.validate_and_assign_to_sample("testtag", {"sample_barcodes": [sample_barcodes[0]]})
     s_tags.validate_and_assign_to_sample("testtag2", {"sample_barcodes": [sample_barcodes[0]]})
 

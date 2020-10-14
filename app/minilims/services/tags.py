@@ -11,16 +11,12 @@ def validate_and_add(jsonbody):
         errors["missing_property"] = f"Missing properties: {missing}"
     if len(errors):
         return errors
-    #Validation
-    if "style" in jsonbody:
-        Tag(
-            value=jsonbody["value"],
-            style=jsonbody["style"],
-        ).save()
-    else:
-        Tag(
-            value=jsonbody["value"],
-        ).save()
+    #Cleaning other fields
+
+    tag_data = {k: v for k, v in jsonbody.items() if k in ["value", "style", "description"]}
+
+    Tag(**tag_data).save()
+
     return errors
 
 def validate_and_delete(tagvalue):

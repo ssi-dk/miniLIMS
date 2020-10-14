@@ -236,7 +236,7 @@ def samples_overview(user):
         "columns": columns,
         "workflows": m_workflow.Workflow.get_workflows(),
         "priority_mapping": current_app.config["PRIORITY"],
-        "tag_styling": Tag.get_styling()
+        "tag_display": Tag.get_display_data()
     }
 
 
