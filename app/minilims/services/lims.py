@@ -154,13 +154,13 @@ def get_batch_overview():
     return {"workflows": list(m_sample.Sample.get_batch_overview())}
 
 def get_step_overview(step_name):
-    step_o = m_step.Step.objects.get({"name":step_name})
+    step_o = m_step.Step.objects.get({"name": step_name})
     step_is = step_o.get_started()
-    samples = step_o.available_samples()
+    #samples = step_o.available_samples()
     data = {
         "step": step_o.summary(),
         "step_batches": step_o.available_samples(distinct_batches_only=True),
-        "available_samples": [s.summary("datatable") for s in samples],
+        #"available_samples": [s.summary("datatable") for s in samples],
         "started_steps": [{"id":step_i._id,
                            "samples": [s.barcode for s in step_i.samples]}
                            for step_i in step_is]
@@ -186,8 +186,9 @@ def get_step_started(step_instance_id):
     
     data["provided_values"] = []
     data["expected_values"] = []
-    data["samples"] = []
     data["step_instance_id"] = step_instance_id
+    data["batch"] = step_instance.batch
+    data["workflow_name"] = step_instance.workflow.name
     data["step"] = {"name": step.name, "display_name": step.display_name}
     for io in step_instance.step.input_output:
         # Find expected values
@@ -250,9 +251,6 @@ def get_step_started(step_instance_id):
                                 value["multivalue"].append(multivalue)
                     data["provided_values"].append(value)    
 
-    # Find step samples
-    for sample in step_instance.samples:
-        data["samples"].append(sample.summary())
     return data
 
 ## Step running

@@ -7,12 +7,15 @@ from flask import url_for, g
 
 import minilims.utils.samplesheet_validation as samplesheet_validation
 import minilims.models.sample as m_sample
+from minilims.models.step_instance import Step_instance
+from minilims.models.step import Step
 from minilims.models.tag import Tag
 import minilims.models.workflow as m_workflow
 from minilims.models.species import Species
 import pymodm.errors
 from minilims.utils import expect
 import minilims.utils.fileutils as fileutils
+import bson
 
 # from minilims.models.user import User
 
@@ -64,7 +67,8 @@ def submit_samplesheet(samplesheet, user):
         s_properties.clean_fields()
         sample = m_sample.Sample(barcode=row["barcode"],
                                  properties=s_properties,
-                                 submitted_on=datetime.datetime.now())
+                                 submitted_on=datetime.datetime.now(),
+                                 comments="")
         sample.clean_fields()
         samples.append(sample)
 
@@ -609,3 +613,21 @@ def barcode_view(user):
         "group": group,
         "last_barcode": bp.last_provided()
     }
+
+
+def get_step_samples_table(step_name, step_instance_id):
+    if step_name is not None:
+        step_o = Step.objects.get({"name": step_name})
+        samples = step_o.available_samples()
+        return [s.summary("step_table") for s in samples]
+    else:
+        s_i = Step_instance.objects.get({"_id": bson.objectid.ObjectId(step_instance_id)})
+        return [s.summary("step_table") for s in s_i.samples]
+
+
+
+def update_sample_comments(row):
+    sample = m_sample.Sample.objects.get({"barcode": row["barcode"]})
+    sample.update("comments", row["comments"])
+    sample.save()
+    return sample.summary("step_table")

@@ -37,29 +37,6 @@
                 <div class="col-sm-12">
                   <table class="table table-bordered dataTable compact" id="samples-table" width="100%" cellspacing="0"
                     role="grid" style="width: 100%;">
-                    <thead>
-                      <tr role="row">
-                        <th rowspan="1" colspan="1" style="width: 64px;">Barcode</th>
-                        <th rowspan="1" colspan="1" style="width: 64px;">Species</th>
-                        <th rowspan="1" colspan="1" style="width: 64px;">Batch</th>
-                      </tr>
-                    </thead>
-                    <tfoot>
-                      <tr role="row">
-                        <th rowspan="1" colspan="1" style="width: 64px;">Barcode</th>
-                        <th rowspan="1" colspan="1" style="width: 64px;">Species</th>
-                        <th rowspan="1" colspan="1" style="width: 64px;">Batch</th>
-                      </tr>
-                    </tfoot>
-                    <tbody>
-                      {% for sample in data.samples %}
-                      <tr role="row" class="odd">
-                        <td>{{ sample.barcode }}</td>
-                        <td>{{ sample.species }}</td>
-                        <td>{{ sample.batch }}</td>
-                      </tr>
-                      {% endfor %}
-                    </tbody>
                   </table>
                 </div>
               </div>
@@ -139,7 +116,7 @@
                 <button href="#" id="finish-step-btn" class="btn btn-success">
                   Finish step
                 </button>
-                <button href="#" id="cancel-step-btn" class="btn btn-warning">
+                <button type="button" href="#" id="cancel-step-btn" class="btn btn-warning">
                 Cancel step
                 </button>
                 <pre class="pre-wrap text-danger" id="end-step-msg">
@@ -152,11 +129,121 @@
     </div>
   </div>
 {% endif %}
+  <div class="modal fade" id="commentsModal" tabindex="-1" role="dialog" aria-labelledby="commentsModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="commentsModalLabel">Sample Comments</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <table class="table table-bordered dataTable compact" id="comments-table" width="100%" cellspacing="0"
+                            role="grid" style="width: 100%;">
+          
+          </table>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 {% endblock %}
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.1/dist/jquery.validate.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.js"></script>
+<script type="text/javascript"
+  src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.21/b-1.6.2/b-html5-1.6.2/sc-2.0.2/sl-1.3.1/datatables.min.js"></script>
+<script src="{{ url_for('static', filename='js/dataTables.altEditor.free.js') }}"></script>
 <script>
+  var comments_table_url = "{{ url_for('samples.step_samples_table', step_instance_id=data.step_instance_id) }}";
+  var batch_name = JSON.parse('{{ data.batch|tojson }}');
+  var workflow_name = JSON.parse('{{ data.workflow_name|tojson }}');
+  var workflow_batch = workflow_name + ": " + batch_name;
+  var columnDefs = [
+    {
+      "title": "order",
+      "data": "positions",
+      "visible": false,
+      "type": "hidden",
+      "render": function (data, type, row) {
+        var position = row.positions[workflow_batch];
+        if (position) {
+          return position.index
+        } else {
+          return 0
+        }
+      },
+    },
+    {
+      "data": "barcode",
+      "title": "Barcode",
+      "readonly": true
+    },
+    {
+      "data": "species",
+      "title": "Species",
+      "type": "hidden"
+    },
+    {
+      "title": "Position",
+      "data": "positions",
+      "render": function (data, type, row) {
+        var position = row.positions[workflow_batch];
+        if (position) {
+          return position.coords
+        } else {
+          return ""
+        }
+      },
+      "type": "hidden"
+    },
+    {
+      "data": "comments",
+      "title": "Comments"
+    }
+  ];
+  myTable = $('#samples-table').DataTable({
+    ajax: {
+      url: comments_table_url,
+      // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
+      dataSrc: ''
+    },
+    order: [[0, 'asc']],
+    columns: columnDefs,
+    paging: false,
+    dom: 'Bfrtip',        // Needs button container
+    select: 'single',
+    responsive: true,
+    altEditor: true,     // Enable altEditor
+    buttons: [
+      {
+        extend: 'selected', // Bind to Selected row
+        text: 'Edit',
+        name: 'edit'        // do not change name
+      },
+      {
+        text: 'Refresh',
+        name: 'refresh'      // do not change name
+      }
+    ],
+    onEditRow: function (datatable, rowdata, success, error) {
+      $.ajax({
+        // a tipycal url would be /{id} with type='POST'
+        url: comments_table_url,
+        type: 'POST',
+        data: JSON.stringify(rowdata),
+        success: success,
+        error: error,
+        contentType: "application/json",
+        dataType: "json"
+      });
+    }
+  });
   $('[data-toggle="tooltip"]').tooltip({ 'container': 'body', "boundary": "viewport"})
   $("#finish-step").submit(function (e) {
       e.preventDefault();
@@ -211,9 +298,10 @@
       }
     });
 
-    document.getElementById("finish-step-btn").onclick = function () {
-      $("#finish-step").validate();
-    }
+  document.getElementById("finish-step-btn").onclick = function () {
+    $("#finish-step").validate();
+  }
+  
 
   document.getElementById("cancel-step-btn").onclick = function(e){
     e.preventDefault();

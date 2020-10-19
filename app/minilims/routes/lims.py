@@ -38,11 +38,6 @@ def step_overview(step_name):
     data = lims_service.get_step_overview(step_name)
     return render_template('lims/step.html', data=data)
 
-# @bp.route('/steps/<step_name>')
-# @bp.route('/steps/<step_name>/samples/<workflow_batch_name>')
-# def step_samples(step_name, workflow_batch_name):
-#     data = lims_service.get_step_samples(step_name, workflow_batch_name)
-#     return data
 
 
 @bp.route('/steps/<step_name>/start', methods=["POST"])

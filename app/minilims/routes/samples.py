@@ -239,3 +239,21 @@ def new_barcodes(count):
         data=bc,
         status=status
     )
+
+
+@bp.route('/step-samples-table', methods=["GET", "POST"])
+@permission_required_API("workflows_progress")
+def step_samples_table():
+    """
+    Return sample comments, and accepts edits
+    """
+    if request.method == "GET":
+        step_instance_id = request.args.get("step_instance_id")
+        step_name = request.args.get("step_name")
+        data = sample_service.get_step_samples_table(step_name, step_instance_id)
+    elif request.method == "POST":
+        data = sample_service.update_sample_comments(request.json)
+    else:
+        data = {}
+    
+    return jsonify(data)

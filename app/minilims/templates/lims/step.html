@@ -131,60 +131,117 @@
 <script type="text/javascript"
   src="https://cdn.datatables.net/v/bs4/jszip-2.5.0/dt-1.10.20/b-1.6.1/b-html5-1.6.1/sc-2.0.1/sl-1.3.1/datatables.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.js"></script>
+<script src="{{ url_for('static', filename='js/dataTables.altEditor.free.js') }}"></script>
 <script>
   $(document).ready(function () {
-      var samples = JSON.parse('{{ data.available_samples|tojson }}');
+
+      var step_samples_url = "{{ url_for('samples.step_samples_table', step_name=data.step.name) }}";
       var table = $('#samples-table').DataTable({
+        ajax: {
+          url: step_samples_url,
+          // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
+          dataSrc: ''
+        },
         paging: false,
+        dom: 'Bfrtip',        // Needs button container
+        select: 'single',
+        responsive: true,
+        altEditor: true,     // Enable altEditor
+        buttons: [
+          {
+            extend: 'selected', // Bind to Selected row
+            text: 'Edit comments',
+            name: 'edit'        // do not change name
+          },
+          {
+            text: 'Refresh',
+            name: 'refresh'      // do not change name
+          }
+        ],
         columns: [
           {
             "className": 'select-checkbox',
             "orderable": false,
             "data": null,
             "defaultContent": '',
-            "width": "12px"
+            "width": "12px",
+            "type": "hidden"
           },
           {
             "title": "order",
             "render": function (data, type, row) {
-              return row.positions[$("#batchName").val()].index
+              var position = row.positions[$("#batchName").val()];
+              if (position){
+                return position.index
+              } else {
+                return ""
+              }
             },
-            "visible": false
+            "visible": false,
+            "type": "hidden"
           },
           {
             "title": "Barcode",
-            "data": "barcode"
+            "data": "barcode",
+            "readonly": true
           },
           {
             "title": "Species",
-            "data": "species"
+            "data": "species",
+            "type": "hidden"
           },
           {
             "title": "Batch",
-            "data": "batch"
+            "data": "batch",
+            "className": "batch_column",
+            "type": "hidden"
           },
           {
             "title": "Position",
             "data": "position",
             "render": function(data, type, row) {
-              return row.positions[$("#batchName").val()].coords
-            }
+              var position = row.positions[$("#batchName").val()];
+              if (position) {
+                return position.coords
+              } else {
+                return ""
+              }
+            },
+            "type": "hidden"
           },
+          {
+            "title": "Comments",
+            "data": "comments",
+          }
         ],
         select: {
           style: 'os',
           selector: 'td:first-child'
         },
-        order: [[1, 'asc']]
+        order: [[1, 'asc']],
+        onEditRow: function (datatable, rowdata, success, error) {
+          $.ajax({
+            // a tipycal url would be /{id} with type='POST'
+            url: step_samples_url,
+            type: 'POST',
+            data: JSON.stringify(rowdata),
+            success: success,
+            error: error,
+            contentType: "application/json",
+            dataType: "json"
+          });
+        }
       });
       function updateTableSample() {
         var batch_name = $("#batchName").val();
-        var tabledata = samples.filter(function (e) {
-          return e.batch_json.indexOf(batch_name) !== -1
-        })
-        table.clear();
-        table.rows.add(tabledata).draw();
-        table.rows().select();
+        table.rows().invalidate()
+        table.columns(".batch_column").search(batch_name).draw();
+        // var tabledata = samples.filter(function (e) {
+        //   return e.batch_json.indexOf(batch_name) !== -1
+        // })
+        // table.clear();
+        // table.rows.add(tabledata).draw();
+        // table.rows().select();
       }
 
       updateTableSample();

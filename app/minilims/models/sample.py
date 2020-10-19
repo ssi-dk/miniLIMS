@@ -1,7 +1,7 @@
 import re
 import datetime
 from flask import current_app
-from pymodm import MongoModel, fields, EmbeddedMongoModel, errors
+from pymodm import MongoModel, fields, EmbeddedMongoModel, errors, connection
 
 from pymongo.write_concern import WriteConcern
 from pymongo.operations import IndexModel
@@ -109,6 +109,7 @@ class Sample(MongoModel):
     workflows = MapField(MapField(fields.EmbeddedDocumentListField(WorkflowResults)))
     submitted_on = fields.DateTimeField(required=True)
     archived = fields.BooleanField(required=True, default=False)
+    comments = fields.CharField(default="", blank=True, required=True)
 
     class Meta:
         write_concern = WriteConcern(j=True)
@@ -289,8 +290,8 @@ class Sample(MongoModel):
                 {
                     "data": "batch",
                     "title": "batch",
-                    "type": "select",
-                    "multiple": "true",
+                    # "type": "select",
+                    # "multiple": "true",
                     "readonly": "true",
                     "name": "batch"
                 },
@@ -303,9 +304,14 @@ class Sample(MongoModel):
                 },
                 {
                     "data": "submission_comments",
-                    "title": "Comments",
+                    "title": "Submission Comments",
                     "readonly": "true",
                     "name": "submission_comments"
+                },
+                {
+                    "data": "comments",
+                    "title": "Comments",
+                    "name": "comments"
                 },
                 {
                     "data": "archived",
@@ -559,8 +565,23 @@ class Sample(MongoModel):
             return None
         return plate_view
 
+    # @classmethod
+    # def get_step_table(cls, sample_ids):
+
+    #     db = connection._get_db()
+    #     samples = list(db[cls._mongometa.collection_name].find({
+    #         "_id": {"$in": sample_ids}
+    #     },{
+    #         "barcode": 1,
+    #         "comments": 1,
+    #         "batches": 1,
+    #         "properties.sample_info.summary."
+    #         "_id": 0
+    #     }))
+    #     return samples
+
+
     def update(self, field, new_value):
-        print(field)
         if field == "species":
             self.properties.sample_info.summary.submitted_species = new_value
             self.properties.sample_info.summary.submitted_species_name = new_value.name
@@ -578,6 +599,8 @@ class Sample(MongoModel):
             self.properties.sample_info.summary.priority = new_value
         elif field == "costcenter":
             self.properties.sample_info.summary.costcenter = new_value
+        elif field == "comments":
+            self.comments = new_value
         elif field == "tags":
             tags = Tag.objects.raw({"_id": {"$in": new_value}})
             self.tags = tags
@@ -863,7 +886,16 @@ class Sample(MongoModel):
                     "positions": positions,
                     "genome_size": genome_size,
                     "submitted_on": self.submitted_on.date(),
-                    "priority": self.properties.sample_info.summary.priority
+                    "priority": self.properties.sample_info.summary.priority,
+                    "comments": self.comments
+            }
+        elif frmt == "step_table":
+            result = {
+                    "none": "",  # For checkbox
+                    "barcode": self.barcode,
+                    "species": self.properties.sample_info.summary.submitted_species.name,
+                    "positions": positions,
+                    "comments": self.comments
             }
         else:
             result = {}
