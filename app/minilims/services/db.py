@@ -56,30 +56,39 @@ def create_demo_users_command():
     """Create demo users in db."""
     from minilims.services.auth import register
     lims_s.init_user_roles()
-    register({
-        "mail": "supplying_lab@test.com",
-        "password": "supplying lab",
-        "roles": ["supplying_lab_user"],
-        "group": "ABC"
-    })
-    register({
-        "mail": "supplying_lab_DEF@test.com",
-        "password": "supplying lab DEF",
-        "roles": ["supplying_lab_user"],
-        "group": "DEF"
-    })
-    register({
-        "mail": "lab_manager@test.com",
-        "password": "lab manager",
-        "roles": ["NGS_lab_manager"],
-        "group": "ABC"
-    })
-    register({
-        "mail": "lab_technician@test.com",
-        "password": "lab technician",
-        "roles": ["lab_technician"],
-        "group": "ABC"
-    })
+    users = [
+        {
+            "mail": "supplying_lab@test.com",
+            "password": "supplying lab",
+            "roles": ["supplying_lab_user"],
+            "group": "ABC"
+        },
+        {
+            "mail": "supplying_lab_DEF@test.com",
+            "password": "supplying lab DEF",
+            "roles": ["supplying_lab_user"],
+            "group": "DEF"
+        },
+        {
+            "mail": "lab_manager@test.com",
+            "password": "lab manager",
+            "roles": ["NGS_lab_manager"],
+            "group": "ABC"
+        },
+        {
+            "mail": "lab_technician@test.com",
+            "password": "lab technician",
+            "roles": ["lab_technician"],
+            "group": "ABC"
+        }
+    ]
+
+    for user in users:
+        error = register(user)
+        if error is not None:
+            user_mail = user["mail"]
+            print(f"Error creating user {user_mail}: ", error)
+
     click.echo('Demo users created.')
 
 @click.command('test_dev')
