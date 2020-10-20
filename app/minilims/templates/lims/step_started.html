@@ -15,6 +15,10 @@
   .tooltip {
     pointer-events: none;
   }
+  .table td {
+    padding: .25rem;
+    font-size: 0.85rem;
+  }
   .pre-wrap {
     white-space: pre-wrap;
   }
@@ -166,20 +170,6 @@
   var workflow_batch = workflow_name + ": " + batch_name;
   var columnDefs = [
     {
-      "title": "order",
-      "data": "positions",
-      "visible": false,
-      "type": "hidden",
-      "render": function (data, type, row) {
-        var position = row.positions[workflow_batch];
-        if (position) {
-          return position.index
-        } else {
-          return 0
-        }
-      },
-    },
-    {
       "data": "barcode",
       "title": "Barcode",
       "readonly": true
@@ -191,11 +181,16 @@
     },
     {
       "title": "Position",
-      "data": "positions",
+      "data": "position",
       "render": function (data, type, row) {
         var position = row.positions[workflow_batch];
         if (position) {
-          return position.coords
+          if (type === "display") {
+            return position.coords
+          } else {
+            return position.index
+          }
+
         } else {
           return ""
         }
@@ -213,7 +208,7 @@
       // our data is an array of objects, in the root node instead of /data node, so we need 'dataSrc' parameter
       dataSrc: ''
     },
-    order: [[0, 'asc']],
+    order: [[2, 'asc']],
     columns: columnDefs,
     paging: false,
     dom: 'Bfrtip',        // Needs button container

@@ -895,7 +895,8 @@ class Sample(MongoModel):
                     "barcode": self.barcode,
                     "species": self.properties.sample_info.summary.submitted_species.name,
                     "positions": positions,
-                    "comments": self.comments
+                    "comments": self.comments,
+                    "batch": batch
             }
         else:
             result = {}

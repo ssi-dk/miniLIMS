@@ -144,7 +144,6 @@
         },
         paging: false,
         dom: 'Bfrtip',        // Needs button container
-        select: 'single',
         responsive: true,
         altEditor: true,     // Enable altEditor
         buttons: [
@@ -167,19 +166,19 @@
             "width": "12px",
             "type": "hidden"
           },
-          {
-            "title": "order",
-            "render": function (data, type, row) {
-              var position = row.positions[$("#batchName").val()];
-              if (position){
-                return position.index
-              } else {
-                return ""
-              }
-            },
-            "visible": false,
-            "type": "hidden"
-          },
+          // {
+          //   "title": "order",
+          //   "render": function (data, type, row) {
+          //     var position = row.positions[$("#batchName").val()];
+          //     if (position){
+          //       return position.index
+          //     } else {
+          //       return ""
+          //     }
+          //   },
+          //   "visible": false,
+          //   "type": "hidden"
+          // },
           {
             "title": "Barcode",
             "data": "barcode",
@@ -202,7 +201,12 @@
             "render": function(data, type, row) {
               var position = row.positions[$("#batchName").val()];
               if (position) {
-                return position.coords
+                if (type === "display") {
+                  return position.coords
+                } else {
+                  return position.index
+                }
+                
               } else {
                 return ""
               }
@@ -218,7 +222,7 @@
           style: 'os',
           selector: 'td:first-child'
         },
-        order: [[1, 'asc']],
+        order: [[4, 'asc']],
         onEditRow: function (datatable, rowdata, success, error) {
           $.ajax({
             // a tipycal url would be /{id} with type='POST'
@@ -230,21 +234,29 @@
             contentType: "application/json",
             dataType: "json"
           });
+        },
+        initComplete: function () {
+          var batch_name = $("#batchName").val();
+          this.api().rows().invalidate();
+          this.api().columns(".batch_column").search(batch_name).draw();
+          this.api().rows().deselect();
+          this.api().rows(":visible").select();
         }
       });
       function updateTableSample() {
         var batch_name = $("#batchName").val();
-        table.rows().invalidate()
+        table.rows().invalidate();
         table.columns(".batch_column").search(batch_name).draw();
+        table.rows().deselect();
+        table.rows(":visible").select();
         // var tabledata = samples.filter(function (e) {
         //   return e.batch_json.indexOf(batch_name) !== -1
         // })
         // table.clear();
         // table.rows.add(tabledata).draw();
-        // table.rows().select();
       }
 
-      updateTableSample();
+      // updateTableSample();
       
       $("#batchName").on("change", updateTableSample);
       

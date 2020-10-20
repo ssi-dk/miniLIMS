@@ -625,7 +625,6 @@ def get_step_samples_table(step_name, step_instance_id):
         return [s.summary("step_table") for s in s_i.samples]
 
 
-
 def update_sample_comments(row):
     sample = m_sample.Sample.objects.get({"barcode": row["barcode"]})
     sample.update("comments", row["comments"])
