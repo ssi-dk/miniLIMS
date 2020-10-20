@@ -189,7 +189,7 @@ def get_step_started(step_instance_id):
     data["step_instance_id"] = step_instance_id
     data["batch"] = step_instance.batch
     data["workflow_name"] = step_instance.workflow.name
-    data["step"] = {"name": step.name, "display_name": step.display_name}
+    data["step"] = step.summary()
     for io in step_instance.step.input_output:
         # Find expected values
         if io.stage == "stepend":
