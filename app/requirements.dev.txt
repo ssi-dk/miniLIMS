@@ -6,3 +6,7 @@ pylint
 pytest-profiling
 snakeviz
 pylint-django
+Sphinx
+sphinx-autoapi
+recommonmark
+sphinx_rtd_theme

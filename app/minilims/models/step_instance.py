@@ -59,11 +59,21 @@ class Step_instance(MongoModel):
         self.batch = batch_list
         self.save()
 
-    def _get_param(self, param_name, scope):
+    def _get_param(self, param_name: str, scope: str):
+        """Parses the param name and gets the value back
+        
+
+        Args:
+            param_name (str): Right now the format is step.field, but can be expanded to workflow.step.field
+            scope (str): "all" or "sample"
+
+        Raises:
+            ValueError: [description]
+
+        Returns:
+            [type]: [description]
         """
-        Parses the param name and gets the value back
-        Right now the format is step.field, but can be expanded to workflow.step.field
-        """
+
         fields = param_name.split(".")
         sample_dict = {}
         if len(fields) == 1:
@@ -171,30 +181,32 @@ class Step_instance(MongoModel):
             self.result_all.pop(fieldname)
 
     def save_params(self, params):
-        """
-        Saves params in step_results.
-        
-        Expected format for params is a dict with the structure:
+        """Saves params in step_results.
 
-        params = {
-            "files": {
-                "fieldname": fileobject,
-                "fieldname2": fileobject2,
-            },
-            "params": {
-                "all": {
-                    "fieldname": value1,
-                    "fieldname2": value2,
+        params format::
+
+            {
+                "files": {
+                    "fieldname": fileobject,
+                    "fieldname2": fileobject2,
                 },
-                "samples" : {
-                    "barcode1" : {
-                        "fieldname1": value1,
-                        ...
+                "params": {
+                    "all": {
+                        "fieldname": value1,
+                        "fieldname2": value2,
                     },
-                    ...
+                    "samples" : {
+                        "barcode1" : {
+                            "fieldname1": value1,
+                            ...
+                        },
+                        ...
+                    }
                 }
             }
-        }
+
+        Args:
+            params (Dict): See format in description
         """
         if "files" in params:
             self.save_files(params["files"])
@@ -209,9 +221,11 @@ class Step_instance(MongoModel):
         self.save()
 
     def remove_params(self, params):
-        """
-        Reverse save_params
-        """
+        """Reverse save_params
+
+        Args:
+            params (Dict): Same as params from save_params.
+        """        
         if "files" in params:
             self.save_files(params["files"])
         if "params" in params:
@@ -224,10 +238,12 @@ class Step_instance(MongoModel):
                         self.result_samples[barcode].pop(fieldname, None)
         self.save()
 
-    def run_scripts(self, stage):
-        """
-        Run all scripts for this step in specified stage.
-        """
+    def run_scripts(self, stage: str) -> None:
+        """Run all scripts for this step in specified stage.
+
+        Args:
+            stage (str): Which step stage to run scripts for. "stepstart" or "stepend"
+        """       
         for script in self.step.input_output:
             if stage in ("stepstart", "stepend"):
                 if script.stage == stage and script.script:

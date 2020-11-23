@@ -5,6 +5,7 @@ coverage.xml
 tests/data_test_real.py
 tests/test_real_data.py
 tests/data_test_real_files/*
+docs/source/autoapi
 prof/
 .vscode
 flask_session

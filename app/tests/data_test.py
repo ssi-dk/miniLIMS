@@ -32,6 +32,7 @@ dbentries_success = [
     {
         "barcode": "ABZ",
         "archived": False,
+        "comments": "",
         "properties": {
             "sample_info":{
                 "summary": {
@@ -55,6 +56,7 @@ dbentries_success = [
     {
         "barcode": "ABC",
         "archived": False,
+        "comments": "",
         "properties": {
             "sample_info":{
                 "summary": {

@@ -3,18 +3,26 @@ import tempfile
 import pymodm
 import gridfs
 
+
+
 class Tempfile:
     """
-    Usage: 
-    with Tempfile() as tmp:
-        tmp.write("Text")
-    pymodmfile = tmp.save()
+    Manages tempfiles related to steps.
 
-    Or:
-    with Tempfile() as tmp:
-        pass
-    functionthatsavestopath(tmp.name)
-    pymodmfile = tmp.save()
+    Usage::
+
+        with Tempfile() as tmp:
+            tmp.write("Text")
+        pymodmfile = tmp.save()
+
+    Or::
+
+        with Tempfile() as tmp:
+            pass
+        functionthatsavestopath(tmp.name)
+        pymodmfile = tmp.save()
+
+
     """
 
     def __init__(self):

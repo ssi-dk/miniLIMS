@@ -69,7 +69,7 @@ class Batch(EmbeddedMongoModel):
     archived = fields.BooleanField(required=True, default=False)
 
 
-class S_summary(EmbeddedMongoModel):
+class S_summary(EmbeddedMongoModel):  
     name = fields.CharField(required=True)
     group = fields.CharField(required=True)
     submitter = fields.ReferenceField(User, required=True)
@@ -452,7 +452,8 @@ class Sample(MongoModel):
                 # the rest will be partially finished so this should be false for them.
                 first_finished_true = False
                 if batch["steps"][step_i]["_id"]["step_cat"] == "root":
-                    step_entries.append({"step_name": "Assigned",
+                    step_entries.append({"step_name": "root",
+                                         "step_d_name": "Assigned",
                                          "count": batch["steps"][step_i]["count"],
                                          "finished": True})
                     step_i += 1
