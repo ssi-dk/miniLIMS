@@ -222,7 +222,7 @@ def unassign_samples(jsonbody):
 
 def samples_overview(user):
     samples = []
-    if user.has_permission("see_all_samples"):
+    if user.has_permission("samples_see_all"):
         samples_db = m_sample.Sample.objects.raw({"archived": False})
     else:
         group = user.group
@@ -435,7 +435,7 @@ def data_source(ra, user):
         qry = {"archived": True}
 
     allqry = {}
-    if not user.has_permission("see_all_samples"):
+    if not user.has_permission("samples_see_all"):
         group = user.group
         qry["properties.sample_info.summary.group"] = group
         allqry["properties.sample_info.summary.group"] = group
