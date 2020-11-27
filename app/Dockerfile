@@ -8,7 +8,7 @@ ENV GROUP_ID=1000 \
 
 WORKDIR /var/www/
 # openssl-dev libffi libffi-dev are needed for msal, microsoft login
-RUN apk add --no-cache --update python3-dev gcc build-base openssl-dev libffi libffi-dev
+RUN apk add --no-cache --update python3-dev gcc build-base openssl-dev libffi libffi-dev jpeg-dev zlib-dev
 
 ADD . /var/www/
 # ADD ./requirements.dev.txt /var/www/requirements.dev.txt

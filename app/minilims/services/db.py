@@ -127,7 +127,7 @@ def test_dev(stop_at_step):
     # s_lims.import_steps(workflow["steps"])
     # s_lims.import_workflow(workflow)
 
-    from tests.conftest import AuthActions
+    from conftest import AuthActions
     auth = AuthActions(client)
     auth.login()
     helper.submit_samples(samplesheet)
