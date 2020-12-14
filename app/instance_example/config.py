@@ -1,10 +1,21 @@
 SECRET_KEY = "dev"
 LIMIT_SUBMITTED_BARCODES_TO_PROVIDED = False
 
-#Sample priority
-PRIORITY= {
+# Sample priority
+PRIORITY = {
     "1": "low",
     "4": "high"
+}
+
+SAMPLESHEET_COLUMNS = {
+    "required": ["sampleid", "barcode", "organism"],
+    "optional": {
+        "validate": ["emails", "priority", "supplydate", "costcenter", "comments"],
+        "dont_validate": ["supplydate"]
+    },
+    "custom_mapping": {
+        # "expected_column_name_by_minilims": "custom_name"
+    }
 }
 
 # Application (client) ID of app registration

@@ -1,6 +1,6 @@
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for,
-    jsonify
+    jsonify, current_app
 )
 from pymodm import errors
 import minilims.services.samples as sample_service
@@ -28,8 +28,9 @@ def archived():
 @bp.route('/submit')
 @permission_required("samples_submit")
 def submit():
-    # Get overview data
-    data = {"columns": sample_m.Sample.columns("submit")}
+    # Get column data
+    custom_mapping = current_app.config["SAMPLESHEET_COLUMNS"]["custom_mapping"]
+    data = {"columns": sample_m.Sample.columns("submit", custom_mapping=custom_mapping)}
     return render_template('samples/submit.html', data=data)
 
 @bp.route('/data-source')

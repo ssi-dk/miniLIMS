@@ -179,6 +179,9 @@ function submitForValidation(json) {
     if (this.status === 200) {
       displayErrors(this.responseText);
       toggleSubmit(this.responseText);
+    } else {
+      displayErrors(JSON.stringify({ "errors": { "general": ["Error validating file. If the problem persists, please contact admin."] } }));
+      document.getElementById('submit_table').disabled = true;
     }
   }
   xhr.send(JSON.stringify(json));
@@ -189,7 +192,7 @@ function updateCount(l) {
 }
 
 function processWb(wb) {
-  var json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]])
+  var json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:null})
   updateCount(json.length);
   submitForValidation(json);
   spinner.stop();

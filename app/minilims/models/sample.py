@@ -163,7 +163,11 @@ class Sample(MongoModel):
         elif field in ("name", "sampleid", "barcode", "batch_name"):
             return Sample._validate_type("barcode", value)
         elif field == "emails":
-            return Sample._validate_type("email", value)
+            email_list = re.split("[;,\s]+", value)
+            for e in email_list:
+                if not Sample._validate_type("email", e):
+                    return False
+            return True
         elif field == "archived":
             if value == "True":
                 value = True
@@ -179,14 +183,14 @@ class Sample(MongoModel):
                 return False
         elif field == "tags":
             return Tag.validate_field(value)
-        elif field in ["comments", "costcenter", "submission_comments"]:
+        elif field in ["comments", "costcenter", "submission_comments", "supplyinglab"]:
             # Always valid
             return True
         else:
             return False
 
     @staticmethod
-    def columns(template, species_options=None):
+    def columns(template, species_options=None, custom_mapping=None):
         from minilims.models.species import Species
         columns = {
             "submit": [
@@ -208,7 +212,7 @@ class Sample(MongoModel):
                 },
                 {
                     "defaultContent": "",
-                    "data": "Email"
+                    "data": "Emails"
                 },
                 {
                     "defaultContent": "",
@@ -248,7 +252,7 @@ class Sample(MongoModel):
                     "title": "tags",
                     "type": "select",
                     "multiple": "true",
-                    "options": [str(x.pk) for x in Tag.objects.project({"_id":1}).all()],
+                    "options": [str(x.pk) for x in Tag.objects.project({"_id": 1}).all()],
                     "name": "tags"
                 },
                 {
@@ -319,10 +323,19 @@ class Sample(MongoModel):
                     "type": "select",
                     "options": ["True", "False"],
                     "name": "archived"
-
                 }
             ]
         }
+        if template == "submit" and custom_mapping is not None:
+            customized_columns = []
+            for coldata in columns[template]:
+                data_l = coldata["data"].lower()
+                # change only if in mapping
+                coldata["data"] = custom_mapping.get(data_l, coldata["data"])
+                coldata["title"] = custom_mapping.get(data_l, coldata["data"])
+                customized_columns.append(coldata)
+            return customized_columns
+
         return columns[template]
 
     @classmethod
@@ -521,7 +534,6 @@ class Sample(MongoModel):
         else:
             return cls.objects.raw(query)
 
-
     @classmethod
     def get_plate_view(cls, workflow, batch_name, plate=None, barcode_only=False):
         """
@@ -530,8 +542,8 @@ class Sample(MongoModel):
 
         if plate is None:
             samples = list(cls.objects.raw({"batches": {"$elemMatch": {"batch_name": batch_name,
-                                                                      "workflow": workflow.pk,
-                                                                      "archived": False}}}))
+                                                                       "workflow": workflow.pk,
+                                                                       "archived": False}}}))
 
             for sample in samples:
                 pt = sample.get_batches(workflow.name, batch_name)[0].position.plate_type
@@ -540,7 +552,7 @@ class Sample(MongoModel):
                 else:
                     if plate != pt:
                         raise ValueError((f"Some samples belong to different plates in the same batch."
-                                           " Workflow: {workflow.name}. Batch: {batch_name}"))
+                                          " Workflow: {workflow.name}. Batch: {batch_name}"))
 
         if plate == "96plate":
             plate_view = {
@@ -580,7 +592,6 @@ class Sample(MongoModel):
     #         "_id": 0
     #     }))
     #     return samples
-
 
     def update(self, field, new_value):
         if field == "species":
