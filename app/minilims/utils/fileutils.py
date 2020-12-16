@@ -25,8 +25,8 @@ class Tempfile:
 
     """
 
-    def __init__(self):
-        self.filehandle = tempfile.NamedTemporaryFile()
+    def __init__(self, suffix=None):
+        self.filehandle = tempfile.NamedTemporaryFile(suffix=suffix)
 
     def __enter__(self):
         return self.filehandle
