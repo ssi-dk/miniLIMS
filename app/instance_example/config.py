@@ -1,12 +1,22 @@
+# Flask DEBUG mode
+DEBUG=False
+
+# Enter a randomly generated string. Used to protect client sessions.
 SECRET_KEY = "dev"
+
+# Specifies the token cache should be stored in server-side session
+SESSION_TYPE = "filesystem"
+
+# If True, it won't allow supplying lab users to upload a sample without requesting the barcode first.
 LIMIT_SUBMITTED_BARCODES_TO_PROVIDED = False
 
-# Sample priority
+# Sample priority mapping for the samplesheet
 PRIORITY = {
-    "1": "low",
-    "4": "high"
+    1: "low",
+    4: "high"
 }
 
+# Samplesheet configuration
 SAMPLESHEET_COLUMNS = {
     "required": ["sampleid", "barcode", "organism"],
     "optional": {
@@ -18,11 +28,15 @@ SAMPLESHEET_COLUMNS = {
     }
 }
 
+# Specifies if login system should be USER_PASSWORD or MICROSOFT_AUTH
+LOGIN_TYPE = "USER_PASSWORD"
+
+# ----- MICROSOFT AUTH START -----
 # Application (client) ID of app registration
-CLIENT_ID = "c163dd4a-0082-4916-8137-c638a80195af"
+CLIENT_ID = ""
 
 # Placeholder - for use ONLY during testing.
-CLIENT_SECRET = "_iB~_v_250873kNyA5DAGLs323MWOgFz~X"
+CLIENT_SECRET = ""
 # In a production app, we recommend you use a more secure method of storing your secret,
 # like Azure Key Vault. Or, use an environment variable as described in Flask's documentation:
 # https://flask.palletsprojects.com/en/1.1.x/config/#configuring-from-environment-variables
@@ -31,7 +45,7 @@ CLIENT_SECRET = "_iB~_v_250873kNyA5DAGLs323MWOgFz~X"
 #     raise ValueError("Need to define CLIENT_SECRET environment variable")
 
 # AUTHORITY = "https://login.microsoftonline.com/common"  # For multi-tenant app
-AUTHORITY = "https://login.microsoftonline.com/d0155445-8a4c-4780-9c13-33c78f22890e"
+AUTHORITY = ""
 
 # Used for forming an absolute URL to your redirect URI.
 REDIRECT_PATH = "/getAToken"
@@ -47,5 +61,5 @@ ENDPOINT = 'https://graph.microsoft.com/v1.0/me'
 # https://docs.microsoft.com/en-us/graph/permissions-reference
 SCOPE = ["User.ReadBasic.All"]
 
-# Specifies the token cache should be stored in server-side session
-SESSION_TYPE = "filesystem"
+# ----- MICROSOFT AUTH END -----
+
