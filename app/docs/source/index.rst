@@ -24,8 +24,7 @@ Welcome to miniLIMS's documentation!
 
    config/intro
    config/workflows
-   config/scripts
-   config/config
+   config/code_and_testing
 
 
 Indices and tables
