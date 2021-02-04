@@ -223,10 +223,10 @@ class Sample(MongoModel):
                     "options": ["low", "high"],
                     "required": True,
                 },
-                {
-                    "defaultContent": "",
-                    "data": "SupplyDate",
-                },
+                # {
+                #     "defaultContent": "",
+                #     "data": "SupplyDate",
+                # },
                 {
                     "defaultContent": "",
                     "data": "Costcenter"
