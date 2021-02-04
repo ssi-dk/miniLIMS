@@ -18,7 +18,7 @@ def validate(json, user):
     json, row_errors, extra_columns = validate_rows(json, user.group, priority_map, validation_config)
     if row_errors:
         errors["rows"] = row_errors
-    general_errors = validate_barcodes(json)
+    general_errors = validate_barcodes_and_sample_ids(json)
     if general_errors:
         errors["general"] = general_errors
     if extra_columns:
@@ -126,18 +126,22 @@ def validate_columns(row, original_len, validation_config, extra_columns):
     return errors, extra_columns
 
 
-def validate_barcodes(json):
-    dupes = []
-    barcodes = []
+def validate_barcodes_and_sample_ids(json):
+    columns_to_check = ["barcode", "sampleid"]
+    dupes = { x: [] for x in columns_to_check }
+    ongoing_list = { x: [] for x in columns_to_check }
     for row in json:
-        if "barcode" in row:
-            if row["barcode"] in barcodes:
-                dupes.append(row["barcode"])
-            else:
-                barcodes.append(row["barcode"])
-    if len(dupes):
-        return ["Duplicate barcodes: {}".format(dupes)]
-    return []
+        for column in columns_to_check:
+            if column in row:
+                if row[column] in ongoing_list[column]:
+                    dupes[column].append(row[column])
+                else:
+                    ongoing_list[column].append(row[column])
+    errors = []
+    for col, items in dupes.items():
+        if len(items):
+            errors.append(f"Duplicate {col}: {items}")
+    return errors
 
 
 def validate_fields(row, priority_map, validation_config):
