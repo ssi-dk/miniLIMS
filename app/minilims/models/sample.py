@@ -79,6 +79,8 @@ class S_summary(EmbeddedMongoModel):
     emails = fields.ListField(field=fields.EmailField(), blank=True)
     costcenter = fields.CharField(required=True, blank=True)
     submission_comments = fields.CharField(required=True, blank=True)
+    supplied_plate_name = fields.CharField(required=True, blank=True)
+    position_in_supplied_plate = fields.CharField(required=True, blank=True)
 
 
 class S_info(EmbeddedMongoModel):
@@ -230,6 +232,14 @@ class Sample(MongoModel):
                     "data": "Costcenter"
                 },
                 {
+                    "data": "PlateName",
+                    "defaultContent": "",
+                },
+                {
+                    "data": "WellPositionInSuppliedPlate",
+                    "defaultContent": "",
+                },
+                {
                     "defaultContent": "",
                     "data": "Comments",
                     "type": "textarea"
@@ -305,6 +315,18 @@ class Sample(MongoModel):
                     "readonly": "true",
                     "name": "genome_size",
                     
+                },
+                {
+                    "data": "supplied_plate_name",
+                    "title": "Supplied Plate Name",
+                    "readonly": "true",
+                    "name": "supplied_plate_name"
+                },
+                {
+                    "data": "position_in_supplied_plate",
+                    "title": "Position in Supplied Plate",
+                    "readonly": "true",
+                    "name": "position_in_supplied_plate"
                 },
                 {
                     "data": "submission_comments",
@@ -899,7 +921,9 @@ class Sample(MongoModel):
                     "genome_size": genome_size,
                     "submitted_on": self.submitted_on.date(),
                     "priority": self.properties.sample_info.summary.priority,
-                    "comments": self.comments
+                    "comments": self.comments,
+                    "supplied_plate_name": self.properties.sample_info.summary.supplied_plate_name,
+                    "position_in_supplied_plate": self.properties.sample_info.summary.position_in_supplied_plate
             }
         elif frmt == "step_table":
             result = {

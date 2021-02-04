@@ -50,6 +50,11 @@ def submit_samplesheet(samplesheet, user):
         species = Species.get_species(row["organism"])
         emails = get_emails(row.get("emails", ""))
         group = row.get("supplyinglab", user.group)
+
+        supplied_plate_name = row.get("platename")
+        position_in_supplied_plate = row.get("wellpositioninsuppliedplate")
+
+
         summary = m_sample.S_summary(
             name=str(row["sampleid"]),
             group=group,
@@ -59,7 +64,9 @@ def submit_samplesheet(samplesheet, user):
             submitted_species_name=species.name,
             emails=emails,
             costcenter=row.get("costcenter"),
-            submission_comments=row.get("comments")
+            submission_comments=row.get("comments"),
+            supplied_plate_name=supplied_plate_name,
+            position_in_supplied_plate=position_in_supplied_plate
         )
         summary.clean_fields()
         s_info = m_sample.S_info(summary=summary)
