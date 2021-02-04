@@ -56,26 +56,28 @@ def update():
 @bp.route('/submit', methods=["POST"])
 @permission_required_API("samples_submit")
 def submit_api():
-    errors = sample_service.validate_samplesheet(request.json, g.user)
+    errors_warnings = sample_service.validate_samplesheet(request.json, g.user)
 
-    if len(errors) == 0:
+    if len(errors_warnings["errors"]) == 0:
         sample_service.submit_samplesheet(request.json, g.user)
         status = "OK"
         flash("Samples submitted successfully", "success")
     else:
         status = "Fail"
     return jsonify(
-        errors=errors,
+        errors=errors_warnings["errors"],
+        warnings=errors_warnings["warnings"],
         status=status
     )
 
 @bp.route('/validate', methods=["POST"])
 @permission_required_API("samples_submit")
 def validate():
-    errors = sample_service.validate_samplesheet(request.json, g.user)
+    errors_warnings = sample_service.validate_samplesheet(request.json, g.user)
     # Get overview data
     return jsonify(
-        errors=errors
+        errors=errors_warnings["errors"],
+        warnings=errors_warnings["warnings"]
     )
 
 @bp.route('/assign', methods=["POST"])

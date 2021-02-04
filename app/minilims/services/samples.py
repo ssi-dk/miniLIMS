@@ -49,9 +49,10 @@ def submit_samplesheet(samplesheet, user):
         # This should pass as it's been validated
         species = Species.get_species(row["organism"])
         emails = get_emails(row.get("emails", ""))
+        group = row.get("supplyinglab", user.group)
         summary = m_sample.S_summary(
             name=str(row["sampleid"]),
-            group=user.group,
+            group=group,
             submitter=user,
             priority=priority_map[row.get("priority", "low").lower()],
             submitted_species=species,

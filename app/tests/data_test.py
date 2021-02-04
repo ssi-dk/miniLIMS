@@ -15,11 +15,11 @@ samplesheets_success = [{"sampleid":"1","barcode":"ABZ","organism":"E. coli", "c
                          "emails":"email@test.com", "costcenter": "123455", "comments": "Septim"}]
 
 errors = (
-    {"errors": {"rows": {'1': ["Missing required column(s): ['organism']", 'Invalid value for field emails (emailtest.com)']}}},
-    {"errors": {"rows": {'1': ['Invalid value for field sampleid (5@)','Invalid value for field organism (E. coli_)', "Species E. coli_ not in database. Contact admin."]}}},
-    {"errors": {"rows": {'1': ["Missing required column(s): ['barcode']"]}}},
-    {"errors": {"general": ["Duplicate barcodes: ['ABC']"]}},
-    {"errors":{}}
+    {"warnings": {}, "errors": {"rows": {'1': ["Missing required column(s): ['organism']", 'Invalid value for field emails (emailtest.com)']}}},
+    {"warnings": {}, "errors": {"rows": {'1': ['Invalid value for field sampleid (5@)','Invalid value for field organism (E. coli_)', "Species E. coli_ not in database. Contact admin."]}}},
+    {"warnings": {}, "errors": {"rows": {'1': ["Missing required column(s): ['barcode']"]}}},
+    {"warnings": {}, "errors": {"general": ["Duplicate barcodes: ['ABC']"]}},
+    {"warnings": {}, "errors":{}}
 )
 
 status_fail = "Fail"

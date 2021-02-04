@@ -249,7 +249,7 @@ def warning_reset_db():
     if current_app.config["DEBUG"]:
         minilims.services.db.clear_db(current_app)
         minilims.services.lims.init_config()
-        minilims.services.db.test_dev(0)
+        #minilims.services.db.test_dev(0)
         flash("Database reset", "success")
     else:
         flash("Not allowed by config", "danger")

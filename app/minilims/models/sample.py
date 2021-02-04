@@ -223,7 +223,7 @@ class Sample(MongoModel):
                 },
                 {
                     "defaultContent": "",
-                    "data": "SupplyDate"
+                    "data": "SupplyDate",
                 },
                 {
                     "defaultContent": "",

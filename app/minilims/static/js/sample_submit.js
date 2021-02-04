@@ -25,13 +25,13 @@ function validateTable() {
   }
   var tableHTML = document.getElementById('data-table');
   var ws = XLSX.utils.table_to_sheet(tableHTML);
-  var json = XLSX.utils.sheet_to_json(ws)
+  var json = XLSX.utils.sheet_to_json(ws, { dateNF: 'dd"."mm"."yyyy',})
   submitForValidation(json);
 }
 function submitButton() {
   var tableHTML = document.getElementById('data-table');
   var ws = XLSX.utils.table_to_sheet(tableHTML);
-  var json = XLSX.utils.sheet_to_json(ws)
+  var json = XLSX.utils.sheet_to_json(ws, { dateNF: 'dd"."mm"."yyyy',})
   submitSamples(json);
 }
 
@@ -119,7 +119,8 @@ function activateTable(data) {
 }
 
 function displayErrors(errorstring) {
-  errors = JSON.parse(errorstring).errors;
+  var errors = JSON.parse(errorstring).errors;
+  var warnings = JSON.parse(errorstring).warnings;
   errorpre = "";
   if (errors.general) {
     for (index in errors.general) {
@@ -129,6 +130,11 @@ function displayErrors(errorstring) {
   if (errors.rows) {
     for (row in errors.rows) {
       errorpre = errorpre + "Row " + row + ": " + errors.rows[row] + "\n"
+    }
+  }
+  if (warnings.general) {
+    for (index in warnings.general) {
+      errorpre = errorpre + "Warning: " + warnings.general[index] + "\n"
     }
   }
   document.getElementById('errors').innerHTML = errorpre;
@@ -192,7 +198,7 @@ function updateCount(l) {
 }
 
 function processWb(wb) {
-  var json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], {defval:null})
+  var json = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { defval: null, dateNF: 'dd"."mm"."yyyy',})
   updateCount(json.length);
   submitForValidation(json);
   spinner.stop();
