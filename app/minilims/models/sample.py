@@ -663,7 +663,7 @@ class Sample(MongoModel):
                         archived=False
                         )
             self.batches.append(wlf)
-            if prev_step_cat == "root":
+            if workflow.name not in self.workflows or prev_step_cat == "root":
                 step_i = WorkflowResults(
                     parent=None,
                     sample={},
@@ -675,9 +675,9 @@ class Sample(MongoModel):
                     index=index
                 )
                 if workflow.name not in self.workflows:
-                    self.workflows[workflow.name] = {"root": [step_i]}
+                    self.workflows[workflow.name] = {prev_step_cat: [step_i]}
                 else:
-                    self.workflows[workflow.name]["root"] = [step_i]
+                    self.workflows[workflow.name][prev_step_cat] = [step_i]
         self.save()
 
     def reorganize(self, workflow, batch_name, new_index):

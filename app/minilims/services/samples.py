@@ -101,6 +101,7 @@ def validate_assign(jsonbody):
         errors["workflow"] = "Workflow doesn't exist"
         return errors
 
+    allowed_as_first_step = False
     if "step_name" in jsonbody:
         workflow_step_names = [s["name"] for s in workflow.steps_denormalized]
         try:
@@ -109,6 +110,8 @@ def validate_assign(jsonbody):
                 prev_step = "root"
             else:
                 prev_step = workflow.steps[i - 1].category
+            if workflow.steps[i].requirements.get("allow_as_first_step", False):
+                allowed_as_first_step = True
         except ValueError:
             errors["step_name"] = "Invalid step {} for workflow {}".format(jsonbody["step_name"], jsonbody["workflow"])
 
@@ -131,7 +134,8 @@ def validate_assign(jsonbody):
                         already_assigned.append(s_b)
                 if "step_name" in jsonbody:
                     if (prev_step != "root" and
-                        prev_step not in sample.workflows[jsonbody["workflow"]]):
+                        prev_step not in sample.workflows.get(jsonbody["workflow"], []) and 
+                        not allowed_as_first_step):
                         errors_step.append(s_b)
         if len(wrong_samples) > 0:
             e_b = "Missing samples: {}".format(",".join(wrong_samples))
@@ -319,6 +323,12 @@ def get_assign_view(sample_barcodes, workflow_name,
                     "group": ""
                 })
     possible_starting_steps = [s["name"] for s in workflow.steps_denormalized[:step_i + 2]]
+    
+    # Find steps that allow starting at any time
+    for step in steps:
+        if step.requirements.get("allow_as_first_step"):
+            if step.name not in possible_starting_steps:
+                possible_starting_steps += [step.name]
 
     columns = [
         {
