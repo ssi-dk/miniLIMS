@@ -183,7 +183,6 @@ def get_step_started(step_instance_id):
         return None
     step = step_instance.step
     data = {}
-    
     data["provided_values"] = []
     data["expected_values"] = []
     data["step_instance_id"] = step_instance_id
@@ -250,6 +249,14 @@ def get_step_started(step_instance_id):
                                 i += 1
                                 value["multivalue"].append(multivalue)
                     data["provided_values"].append(value)    
+
+    data["expected_values"].append({
+            "name": "comments",
+            "display_name": "Comments",
+            "scope": "all",
+            "type": "textarea",
+            "required": False
+        })
 
     return data
 
