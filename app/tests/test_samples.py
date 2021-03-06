@@ -137,13 +137,13 @@ def test_unassign_samples(client, auth):
 
 
 @pytest.mark.parametrize(('json_body', 'expected_response', 'updater'),(
-    ({"barcode": "123", "species": "1233", "group": "group12", "name": "testsample1@", "archived": "True", "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000, "tags": [], "costcenter": "1", "submission_comments": "", "comments": ""},
+    ({"barcode": "123", "species": "1233", "group": "group12", "name": "testsample1@", "archived": "True", "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000, "tags": [], "costcenter": "1", "submission_comments": "", "comments": "", "supplied_plate_name": None, "position_in_supplied_plate": None},
     {'errors': {'wrong_barcode': ['Wrong barcode.'], 'wrong_species': ["Species doesn't match species in database."], 'validate_field_name': ['Invalid field value (testsample1@) for column name.']}},
     ("test@test.com", "test")),
-    ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "True",  "submitted_on": datetime.date.today().strftime("%Y-%m-%d"), "priority": "1", "batch": "Unassigned", "genome_size": 4900000, "tags": ["test1"], "costcenter": "1","submission_comments": "Septim", "comments": ""},
-    {"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "True", "submitted_on": datetime.date.today().strftime("%Y-%m-%d"), "priority": 1, "batch": "Unassigned", "genome_size": 4900000, "tags": ["test1"], "costcenter": "1", "submission_comments": "Septim", 'none': "", 'positions': {}, "batch_json": [], "comments": ""},
+    ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "True",  "submitted_on": datetime.date.today().strftime("%Y-%m-%d"), "priority": "1", "batch": "Unassigned", "genome_size": 4900000, "tags": ["test1"], "costcenter": "1","submission_comments": "Septim", "comments": "", "supplied_plate_name": None, "position_in_supplied_plate": None},
+    {"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "True", "submitted_on": datetime.date.today().strftime("%Y-%m-%d"), "priority": 1, "batch": "Unassigned", "genome_size": 4900000, "tags": ["test1"], "costcenter": "1", "submission_comments": "Septim", 'none': "", 'positions': {}, "batch_json": [], "comments": "", "supplied_plate_name": None, "position_in_supplied_plate": None},
     ("test@test.com", "test")),
-    ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "True",  "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000, "tags": [], "costcenter": "1", "submission_comments": "", "comments": ""},
+    ({"barcode": "ABC", "species": "Salmonella enterica", "group": "FBI", "name": "testsample1", "archived": "True",  "submitted_on": None, "priority": "1", "batch": "Unassigned", "genome_size": 5000000, "tags": [], "costcenter": "1", "submission_comments": "", "comments": "", "supplied_plate_name": None, "position_in_supplied_plate": None},
     {'errors': {'authorization': ["Your user doesn't have permission to edit this sample. Please contact an admin to request changes."]}},
     ("supplying_lab@test.com", "supplying lab"))
 ))

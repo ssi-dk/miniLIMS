@@ -18,7 +18,7 @@ errors = (
     {"warnings": {}, "errors": {"rows": {'1': ["Missing required column(s): ['organism']", 'Invalid value for field emails (emailtest.com)']}}},
     {"warnings": {}, "errors": {"rows": {'1': ['Invalid value for field sampleid (5@)','Invalid value for field organism (E. coli_)', "Species E. coli_ not in database. Contact admin."]}}},
     {"warnings": {}, "errors": {"rows": {'1': ["Missing required column(s): ['barcode']"]}}},
-    {"warnings": {}, "errors": {"general": ["Duplicate barcodes: ['ABC']"]}},
+    {"warnings": {}, "errors": {"general": ["Duplicate barcode: ['ABC']"]}},
     {"warnings": {}, "errors":{}}
 )
 
@@ -45,6 +45,8 @@ dbentries_success = [
                     "group": "TST",
                     "priority": 1,
                     "submission_comments": "asdsasd",
+                    "supplied_plate_name": None,
+                    "position_in_supplied_plate": None,
                     '_cls': 'minilims.models.sample.S_summary'
                 },
                 '_cls': 'minilims.models.sample.S_info'
@@ -69,6 +71,8 @@ dbentries_success = [
                     "priority": 4,
                     "costcenter": "123455",
                     "submission_comments": "Septim",
+                    "supplied_plate_name": None,
+                    "position_in_supplied_plate": None,
                     '_cls': 'minilims.models.sample.S_summary'
                 },
                 '_cls': 'minilims.models.sample.S_info'

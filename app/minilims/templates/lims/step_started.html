@@ -103,11 +103,11 @@
                   <div>
                     <label>{{ field.display_name }}</label>
                     {% if field.type == "file" %}
-                    <input type="file" name="{{ field.name }}" id="expected-input-{{ field.name }}" required="{{ field.required }}" class="step-input-field">
+                    <input type="file" name="{{ field.name }}" id="expected-input-{{ field.name }}" {% if field.required %}required{% endif %} class="step-input-field">
                     {% elif field.type == "textarea" %}
-                    <textarea name="{{ field.name }}" id="expected-input-{{ field.name }}" required="{{ field.required }}" class="step-input-field"></textarea>
+                    <textarea name="{{ field.name }}" id="expected-input-{{ field.name }}" {% if field.required %}required{% endif %} class="step-input-field"></textarea>
                     {% else %}
-                    <input type="text" name="{{ field.name }}" id="expected-input-{{ field.name }}" required="{{ field.required }}" class="step-input-field">
+                    <input type="text" name="{{ field.name }}" id="expected-input-{{ field.name }}" {% if field.required %}required{% endif %} class="step-input-field">
                     {% endif %}
                   </div>
                   {% endfor %}

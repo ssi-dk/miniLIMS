@@ -50,10 +50,11 @@ class Step_instance(MongoModel):
             if barcode is None:
                 return self.result_all[fieldname]
             else:
-                return self.result_samples[barcode]
+                return self.result_samples[barcode][fieldname]
         except KeyError:
-            raise minilims.errors.MissingValueError(
-                "Value {} for barcode {} not found in results.".format(fieldname, barcode))
+            return None
+            # raise minilims.errors.MissingValueError(
+            #     "Value {} for barcode {} not found in results.".format(fieldname, barcode))
 
     def set_batch(self, batch_list):
         self.batch = batch_list
