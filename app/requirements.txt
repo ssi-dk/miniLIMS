@@ -1,7 +1,7 @@
 Flask==1.0.2
 Flask-PyMongo==2.2.0
 Flask-Session==0.3.2
-requests==2.20.1
+requests==2.31.0
 watchdog
 pymodm
 msal>=0.6.1,<2
